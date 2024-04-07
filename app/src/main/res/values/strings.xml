@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ScrollPractice</string>
+    <string name="cloth1">All color of this cloth</string>
+    <string name="cloth2">Black color Man clothing Picture</string>
+    <string name="cloth3">Gray color Man clothing Picture</string>
+    <string name="cloth4">Gray color Woman clothing Picture</string>
+    <string name="cloth5">Precaution</string>
+    <string name="fitting_button">가상피팅해보기</string>
+</resources>

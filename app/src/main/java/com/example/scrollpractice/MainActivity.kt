@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -87,7 +86,7 @@ fun ClothList(clothList: List<Clothes>, modifier: Modifier = Modifier) {
                 )
             }
             item {
-                Button(onClick = { /*TODO*/ }) {
+                Button(onClick = { /*define later*/ }) {
                     Text(stringResource(R.string.fitting_button))
                 }
             }

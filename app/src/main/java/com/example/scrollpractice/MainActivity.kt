@@ -86,7 +86,7 @@ fun ClothList(clothList: List<Clothes>, modifier: Modifier = Modifier) {
                 )
             }
             item {
-                Button(onClick = { /*define later*/ }) {
+                Button(onClick = { /*define later..*/ }) {
                     Text(stringResource(R.string.fitting_button))
                 }
             }

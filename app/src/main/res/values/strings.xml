@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">ScrollPractice</string>
+    <string name="login">Login</string>
+    <string name="product">Product</string>
+    <string name="search">Search</string>
+    <string name="my">My</string>
+    <string name="fitting">Fitting</string>
     <string name="cloth1">All color of this cloth</string>
     <string name="cloth2">Black color Man clothing Picture</string>
     <string name="cloth3">Gray color Man clothing Picture</string>

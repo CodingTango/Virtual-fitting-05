@@ -74,11 +74,13 @@ dependencies {
     implementation("androidx.camera:camera-extensions:$cameraxVersion")
 
     implementation("androidx.compose.material:material-icons-extended:1.5.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.1")
+
 
 
     // 기본 gradle 설정
 
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))

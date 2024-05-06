@@ -11,4 +11,5 @@
     <string name="cloth4">Gray color Woman clothing Picture</string>
     <string name="cloth5">Precaution</string>
     <string name="fitting_button">가상피팅해보기</string>
+    <string name="title_activity_camera">CameraActivity</string>
 </resources>

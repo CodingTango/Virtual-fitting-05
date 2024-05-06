@@ -24,7 +24,9 @@ import com.example.scrollpractice.data.Datasource
 import com.example.scrollpractice.model.Clothes
 
 @Composable
-fun ProductScreen( modifier: Modifier = Modifier, navigateToFittingScreen:()->Unit){
+fun ProductScreen( modifier: Modifier = Modifier,
+                   onFittingButtonClicked:()->Unit,
+                   onBackButtonClicked:()->Unit){
     val clothList: List<Clothes> = Datasource().loadClothes()
     LazyColumn(
         modifier = modifier,
@@ -36,11 +38,11 @@ fun ProductScreen( modifier: Modifier = Modifier, navigateToFittingScreen:()->Un
             )
         }
         item {
-            Button(onClick = { navigateToFittingScreen() }) {
+            Button(onClick = { onFittingButtonClicked() }) {
                 Text(stringResource(R.string.fitting_button))
             }
             Spacer(modifier = Modifier.height(32.dp))
-            Button(onClick = { }) {
+            Button(onClick = {onBackButtonClicked()}) {
                 Text(text = "Back")
             }
         }

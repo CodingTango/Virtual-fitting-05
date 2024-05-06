@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.sp
 import com.example.scrollpractice.R
 
 @Composable
-fun SearchScreen(navigateToMyScreen:()->Unit) {
+fun SearchScreen(onMyButtonClicked:()->Unit,
+                 onBackButtonClicked:()->Unit,
+                 onImageButton1Clicked:()->Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -28,19 +30,19 @@ fun SearchScreen(navigateToMyScreen:()->Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Text(text = "My를 터치하면 마이페이지로 이동합니다.", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { }) {
+        Button(onClick = { onImageButton1Clicked() }) {
             Image(
                 painter = painterResource(R.drawable.image6),
                 contentDescription = "cloth icon")
             //Text(text = "키뮤어 후드집업")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navigateToMyScreen() }) {
+        Button(onClick = { onMyButtonClicked() }) {
             Text(stringResource(R.string.my))
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {  }) {
-            Text(text = "Go to Login Screen")
+        Button(onClick = { onBackButtonClicked() }) {
+            Text(text = "Back")
         }
     }
 }

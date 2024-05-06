@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun LoginScreen(navigationToSearchScreen:()->Unit) {
+fun LoginScreen(onNextButtonClicked:()->Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -28,7 +28,7 @@ fun LoginScreen(navigationToSearchScreen:()->Unit) {
         Text(text = "다음으로 가려면 버튼을 누르세요", fontSize = 20.sp)
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = {
-            navigationToSearchScreen()
+            onNextButtonClicked()
         }) {
             Text(text = "Next")
         }

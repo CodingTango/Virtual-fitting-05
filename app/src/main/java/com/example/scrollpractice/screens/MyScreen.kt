@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.example.scrollpractice.R
 
 @Composable
-fun MyScreen() {
+fun MyScreen( onBackButtonClicked:()->Unit) {
     val context = LocalContext.current
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -45,7 +45,7 @@ fun MyScreen() {
             Text(text = "앨범에서 사진등록")
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { }) {
+        Button(onClick = { onBackButtonClicked() }) {
             Text(text = "Back")
         }
     }

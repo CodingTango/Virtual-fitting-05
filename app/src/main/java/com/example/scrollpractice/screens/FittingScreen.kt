@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.example.scrollpractice.R
 
 @Composable
-fun FittingScreen() {
+fun FittingScreen(onBackButtonClicked:()->Unit) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -26,7 +26,7 @@ fun FittingScreen() {
             painter = painterResource(R.drawable.man),
             contentDescription = "Virtual Fitting Result")
         Spacer(modifier = Modifier.height(32.dp))
-        Button(onClick = { }) {
+        Button(onClick = {onBackButtonClicked()}) {
             Text(text = "Back")
         }
     }

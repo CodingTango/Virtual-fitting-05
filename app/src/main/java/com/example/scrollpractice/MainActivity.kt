@@ -27,25 +27,32 @@ fun MyApp(){
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "login") {
         composable("login"){
-            LoginScreen {
-                navController.navigate("searchscreen")
-            }
+            LoginScreen (
+                onNextButtonClicked = {navController.navigate("searchScreen")}
+            )
         }
-        composable(route = "searchscreen"){
-            SearchScreen {
-                navController.navigate("myscreen")
-            }
+        composable(route = "searchScreen"){
+            SearchScreen (
+                onMyButtonClicked = {navController.navigate("myScreen")},
+                onBackButtonClicked = {navController.navigate("login")},
+                onImageButton1Clicked = {navController.navigate("productScreen")}
+            )
         }
-        composable(route = "productscreen"){
-            ProductScreen {
-                navController.navigate("fittingscreen")
-            }
+        composable(route = "productScreen"){
+            ProductScreen (
+                onFittingButtonClicked = {navController.navigate("fittingScreen")},
+                onBackButtonClicked = {navController.navigate("searchScreen")}
+            )
         }
-        composable(route = "myscreen"){
-            MyScreen()
+        composable(route = "myScreen"){
+            MyScreen (
+                onBackButtonClicked = {navController.navigate("searchScreen")}
+            )
         }
-        composable(route = "fittingscreen"){
-            FittingScreen()
+        composable(route = "fittingScreen"){
+            FittingScreen(
+                onBackButtonClicked = {navController.navigate("productScreen")}
+            )
         }
     }
 }

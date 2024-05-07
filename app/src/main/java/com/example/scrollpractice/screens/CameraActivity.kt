@@ -3,6 +3,8 @@
 package com.example.scrollpractice.screens
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Matrix
@@ -25,6 +27,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetScaffold
@@ -130,6 +133,15 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
+                                    finish()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "register")
+                            }
+                            IconButton(
+                                onClick = {
                                     takePhoto(
                                         controller = controller,
                                         onPhotoTaken = viewModel::onTakePhoto
@@ -174,6 +186,9 @@ class CameraActivity : ComponentActivity() {
                     )
 
                     onPhotoTaken(rotatedBitmap)
+                    val resultIntent = Intent()
+                    resultIntent.putExtra("image", rotatedBitmap)
+                    setResult(Activity.RESULT_OK, resultIntent)
                 }
 
                 override fun onError(exception: ImageCaptureException) {

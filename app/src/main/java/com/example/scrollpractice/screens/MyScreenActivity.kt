@@ -56,6 +56,11 @@ class MyScreenActivity : ComponentActivity() {
             }) {
                 Text("Open Camera")
             }
+            Button(onClick = {
+                finish()
+            }) {
+                Text("Back")
+            }
         }
     }
 }

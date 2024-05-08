@@ -59,23 +59,28 @@ import java.util.Date
 import java.util.Locale
 
 class CameraActivity : ComponentActivity() {
+    private lateinit var cameraSelector: CameraSelector
+    private lateinit var imageCapture: ImageCapture
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if(!hasRequiredPermissions()) {
-            ActivityCompat.requestPermissions(
-                this, CAMERA_PERMISSIONS, 0
-            )
+        if (!hasRequiredPermissions()) {
+            ActivityCompat.requestPermissions(this, CAMERA_PERMISSIONS, 0)
         }
+
+        cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA  // Default selector
+        imageCapture = ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
+
         setContent {
             ScrollPracticeTheme {
                 val scope = rememberCoroutineScope()
                 val scaffoldState = rememberBottomSheetScaffoldState()
                 val controller = remember {
                     LifecycleCameraController(applicationContext).apply {
-                        setEnabledUseCases(
-                            CameraController.IMAGE_CAPTURE or
-                                    CameraController.VIDEO_CAPTURE
-                        )
+                        setEnabledUseCases(CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE)
+                        this.cameraSelector = cameraSelector
                     }
                 }
                 val viewModel = viewModel<MainViewModel>()
@@ -86,11 +91,9 @@ class CameraActivity : ComponentActivity() {
                     sheetPeekHeight = 0.dp,
                     sheetContent = {
                         PhotoBottomSheetContent(
-                            bitmaps =bitmaps,
-                            modifier = Modifier
-                                .fillMaxWidth()
+                            bitmaps = bitmaps,
+                            modifier = Modifier.fillMaxWidth()
                         )
-
                     }
                 ) { padding ->
                     Box(
@@ -100,19 +103,20 @@ class CameraActivity : ComponentActivity() {
                     ) {
                         CameraPreview(
                             controller = controller,
-                            modifier = Modifier
-                                .fillMaxSize()
+                            modifier = Modifier.fillMaxSize()
                         )
 
                         IconButton(
                             onClick = {
-                                controller.cameraSelector =
-                                    if(controller.cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                                        CameraSelector.DEFAULT_FRONT_CAMERA
-                                    } else CameraSelector.DEFAULT_BACK_CAMERA
+                                // Toggle between front and back camera
+                                cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
+                                    CameraSelector.DEFAULT_FRONT_CAMERA
+                                } else {
+                                    CameraSelector.DEFAULT_BACK_CAMERA
+                                }
+                                controller.cameraSelector = cameraSelector
                             },
-                            modifier = Modifier
-                                .offset(16.dp, 16.dp)
+                            modifier = Modifier.offset(16.dp, 16.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Cameraswitch,
@@ -136,7 +140,8 @@ class CameraActivity : ComponentActivity() {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Photo,
-                                    contentDescription = "Open gallery")
+                                    contentDescription = "Open gallery"
+                                )
                             }
                             IconButton(
                                 onClick = {
@@ -145,7 +150,8 @@ class CameraActivity : ComponentActivity() {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.PhotoCamera,
-                                    contentDescription = "Take photo")
+                                    contentDescription = "Take photo"
+                                )
                             }
 
                         }
@@ -164,8 +170,6 @@ class CameraActivity : ComponentActivity() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)

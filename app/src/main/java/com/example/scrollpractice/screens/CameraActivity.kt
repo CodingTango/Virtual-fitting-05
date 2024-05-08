@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetScaffold
@@ -67,7 +66,7 @@ class CameraActivity : ComponentActivity() {
                     LifecycleCameraController(applicationContext).apply {
                         setEnabledUseCases(
                             CameraController.IMAGE_CAPTURE or
-                            CameraController.VIDEO_CAPTURE
+                                    CameraController.VIDEO_CAPTURE
                         )
                     }
                 }
@@ -133,15 +132,6 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
-                                    finish()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "register")
-                            }
-                            IconButton(
-                                onClick = {
                                     takePhoto(
                                         controller = controller,
                                         onPhotoTaken = viewModel::onTakePhoto
@@ -189,6 +179,7 @@ class CameraActivity : ComponentActivity() {
                     val resultIntent = Intent()
                     resultIntent.putExtra("image", rotatedBitmap)
                     setResult(Activity.RESULT_OK, resultIntent)
+                    finish()
                 }
 
                 override fun onError(exception: ImageCaptureException) {

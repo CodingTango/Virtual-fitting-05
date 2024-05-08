@@ -9,7 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.scrollpractice.screens.FittingScreen
 import com.example.scrollpractice.screens.LoginScreen
-import com.example.scrollpractice.screens.MyScreen
 import com.example.scrollpractice.screens.ProductScreen
 import com.example.scrollpractice.screens.SearchScreen
 
@@ -33,7 +32,6 @@ fun MyApp(){
         }
         composable(route = "searchScreen"){
             SearchScreen (
-                onMyButtonClicked = {navController.navigate("myScreen")},
                 onBackButtonClicked = {navController.navigate("login")},
                 onImageButton1Clicked = {navController.navigate("productScreen")}
             )
@@ -41,11 +39,6 @@ fun MyApp(){
         composable(route = "productScreen"){
             ProductScreen (
                 onFittingButtonClicked = {navController.navigate("fittingScreen")},
-                onBackButtonClicked = {navController.navigate("searchScreen")}
-            )
-        }
-        composable(route = "myScreen"){
-            MyScreen (
                 onBackButtonClicked = {navController.navigate("searchScreen")}
             )
         }

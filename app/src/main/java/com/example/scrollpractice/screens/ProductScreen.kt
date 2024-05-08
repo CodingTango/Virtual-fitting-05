@@ -66,4 +66,3 @@ fun ClothesCard(clothes: Clothes, modifier: Modifier = Modifier) {
         }
     }
 }
-

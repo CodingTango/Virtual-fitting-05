@@ -7,15 +7,17 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.Matrix
+import android.graphics.BitmapFactory
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageCapture.OnImageCapturedCallback
+import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +51,11 @@ import com.example.scrollpractice.PhotoBottomSheetContent
 import com.example.scrollpractice.ui.theme.ScrollPracticeTheme
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
+import java.io.File
+import java.io.FileOutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class CameraActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,10 +139,7 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
-                                    takePhoto(
-                                        controller = controller,
-                                        onPhotoTaken = viewModel::onTakePhoto
-                                    )
+                                    takePhotoAndSave()
                                 }
                             ) {
                                 Icon(
@@ -151,44 +155,63 @@ class CameraActivity : ComponentActivity() {
         }
     }
 
-    private fun takePhoto(
-        controller: LifecycleCameraController,
-        onPhotoTaken: (Bitmap) -> Unit
-    ) {
-        controller.takePicture(
-            ContextCompat.getMainExecutor(applicationContext),
-            object : OnImageCapturedCallback() {
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
+    private fun takePhotoAndSave() {
+        val imageCapture = ImageCapture.Builder()
+            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+            .build()
 
-                    val matrix = Matrix().apply {
-                        postRotate(image.imageInfo.rotationDegrees.toFloat())
-                        // postScale(-1f, 1f)
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                cameraProvider.unbindAll()
+                cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)
+
+                val photoFile = createImageFile()
+                imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
+                    override fun onCaptureSuccess(image: ImageProxy) {
+                        val bitmap = imageProxyToBitmap(image)
+                        saveBitmapToFile(bitmap, photoFile)
+                        val resultIntent = Intent().apply {
+                            putExtra("photo_path", photoFile.absolutePath)
+                        }
+                        setResult(Activity.RESULT_OK, resultIntent)
+                        finish()
+                        image.close()
                     }
-                    val rotatedBitmap = Bitmap.createBitmap(
-                        image.toBitmap(),
-                        0,
-                        0,
-                        image.width,
-                        image.height,
-                        matrix,
-                        true
-                    )
 
-                    onPhotoTaken(rotatedBitmap)
-                    val resultIntent = Intent()
-                    resultIntent.putExtra("image", rotatedBitmap)
-                    setResult(Activity.RESULT_OK, resultIntent)
-                    finish()
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    super.onError(exception)
-                    Log.e("Camera", "Couldn't take photo: ", exception)
-                }
+                    override fun onError(exc: ImageCaptureException) {
+                        Log.e("CameraActivity", "Photo capture failed: ${exc.message}", exc)
+                    }
+                })
+            } catch (exc: Exception) {
+                Log.e("CameraActivity", "Use case binding failed", exc)
             }
-        )
+        }, ContextCompat.getMainExecutor(this))
     }
+
+    private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+        val buffer = image.planes[0].buffer
+        buffer.rewind()
+        val bytes = ByteArray(buffer.capacity())
+        buffer.get(bytes)
+        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+    }
+
+    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
+        FileOutputStream(file).use { out ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+        }
+    }
+
+    private fun createImageFile(): File {
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
 
     private fun hasRequiredPermissions(): Boolean {
         return CAMERA_PERMISSIONS.all {

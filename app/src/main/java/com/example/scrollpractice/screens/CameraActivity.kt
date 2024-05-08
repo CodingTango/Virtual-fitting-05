@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -172,7 +173,9 @@ class CameraActivity : ComponentActivity() {
                 val photoFile = createImageFile()
                 imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-                        val bitmap = imageProxyToBitmap(image)
+
+                        val rotationDegrees = image.imageInfo.rotationDegrees  // Get rotation degrees from the ImageProxy
+                        val bitmap = imageProxyToBitmap(image, rotationDegrees)
                         saveBitmapToFile(bitmap, photoFile)
                         val resultIntent = Intent().apply {
                             putExtra("photo_path", photoFile.absolutePath)
@@ -192,12 +195,17 @@ class CameraActivity : ComponentActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun imageProxyToBitmap(image: ImageProxy): Bitmap {
+    private fun imageProxyToBitmap(image: ImageProxy, rotationDegrees: Int): Bitmap {
         val buffer = image.planes[0].buffer
         buffer.rewind()
         val bytes = ByteArray(buffer.capacity())
         buffer.get(bytes)
-        return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
+
+        // Rotate the bitmap according to the captured image's rotation degrees
+        val matrix = Matrix()
+        matrix.postRotate(rotationDegrees.toFloat())
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
     private fun saveBitmapToFile(bitmap: Bitmap, file: File) {

@@ -2,15 +2,13 @@
 
 package com.example.scrollpractice.screens
 
+import CameraViewModel
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,27 +44,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.scrollpractice.CameraPreview
-import com.example.scrollpractice.MainViewModel
 import com.example.scrollpractice.PhotoBottomSheetContent
 import com.example.scrollpractice.ui.theme.ScrollPracticeTheme
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import java.io.File
-import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.io.ByteArrayOutputStream
 
 class CameraActivity : ComponentActivity() {
     private lateinit var cameraSelector: CameraSelector
     private lateinit var imageCapture: ImageCapture
+    private lateinit var viewModel: CameraViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val imageRepository = ImageRepositoryImpl2()  // 예시로 직접 생성, 실제로는 다른 방법을 사용할 수 있습니다.
+        val viewModelFactory = CameraViewModelFactory(imageRepository)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(CameraViewModel::class.java)
+
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSIONS, 0)
+            // 여기에 return을 넣으면 카메라 실행시 화면이 하얗게 변한다.
         }
 
         cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA  // Default selector
@@ -83,7 +83,7 @@ class CameraActivity : ComponentActivity() {
                         this.cameraSelector = cameraSelector
                     }
                 }
-                val viewModel = viewModel<MainViewModel>()
+
                 val bitmaps by viewModel.bitmaps.collectAsState()
 
                 BottomSheetScaffold(
@@ -174,17 +174,15 @@ class CameraActivity : ComponentActivity() {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)
 
-                val photoFile = createImageFile()
                 imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
 
                         val rotationDegrees = image.imageInfo.rotationDegrees  // Get rotation degrees from the ImageProxy
                         val bitmap = imageProxyToBitmap(image, rotationDegrees)
-                        saveBitmapToFile(bitmap, photoFile)
-                        val resultIntent = Intent().apply {
-                            putExtra("photo_path", photoFile.absolutePath)
-                        }
-                        setResult(Activity.RESULT_OK, resultIntent)
+                        val stream = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                        val imageData = stream.toByteArray()
+                        viewModel.saveImage(imageData)
                         finish()
                         image.close()
                     }
@@ -210,18 +208,6 @@ class CameraActivity : ComponentActivity() {
         val matrix = Matrix()
         matrix.postRotate(rotationDegrees.toFloat())
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-    }
-
-    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-    }
-
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
 

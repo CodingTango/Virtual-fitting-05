@@ -2,14 +2,9 @@ package com.example.scrollpractice.screens
 
 // MyScreenActivity.kt
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -17,42 +12,42 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MyScreenActivity : ComponentActivity() {
-    private lateinit var imageLauncher: ActivityResultLauncher<Intent>
-    private var imageBitmap = mutableStateOf<Bitmap?>(null)
+
+    private lateinit var viewModel: MyScreenViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        imageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val photoPath = result.data?.getStringExtra("photo_path")
-                photoPath?.let {
-                    val bitmap = BitmapFactory.decodeFile(it)
-                    imageBitmap.value = bitmap
-                }
-            }
-        }
+
+        val imageRepository = ImageRepositoryImpl()
+        val viewModelFactory = MyScreenViewModelFactory(imageRepository)
+        viewModel = ViewModelProvider(this, viewModelFactory).get(MyScreenViewModel::class.java)
+
 
         setContent {
-            MyScreen()
+            val viewModel: MyScreenViewModel = viewModel()
+            viewModel.loadImage(1)
+            MyScreen(viewModel)
         }
     }
 
     @Composable
-    fun MyScreen() {
+    fun MyScreen(viewModel: MyScreenViewModel) {
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            imageBitmap.value?.let {
-                Image(bitmap = it.asImageBitmap(), contentDescription = "User Picture", modifier = Modifier.size(300.dp))
-            } ?: Text("No image selected")
+            DisplayImage(viewModel)
             Button(onClick = {
-                val cameraIntent = Intent(this@MyScreenActivity, CameraActivity::class.java)
-                imageLauncher.launch(cameraIntent)
+                context.startActivity(Intent(context, CameraActivity::class.java))
             }) {
                 Text("Open Camera")
             }
@@ -61,6 +56,16 @@ class MyScreenActivity : ComponentActivity() {
             }) {
                 Text("Back")
             }
+        }
+    }
+
+    @Composable
+    fun DisplayImage(viewModel: MyScreenViewModel) {
+        val imageBitmap by viewModel.imageBitmap.collectAsState()
+        if (imageBitmap != null) {
+            androidx.compose.foundation.Image(bitmap = imageBitmap!!.asImageBitmap(), contentDescription = "User Picture", modifier = Modifier.size(300.dp))
+        } else {
+            Text("No image selected")
         }
     }
 }

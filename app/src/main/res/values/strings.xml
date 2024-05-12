@@ -13,4 +13,5 @@
     <string name="fitting_button">가상피팅해보기</string>
     <string name="title_activity_camera">CameraActivity</string>
     <string name="title_activity_my_screen">MyScreenActivity</string>
+    <string name="camera_title">Camera</string>
 </resources>

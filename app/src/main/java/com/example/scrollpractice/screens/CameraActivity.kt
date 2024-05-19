@@ -2,7 +2,6 @@
 
 package com.example.scrollpractice.screens
 
-import CameraViewModel
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -58,10 +57,7 @@ class CameraActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val imageRepository = ImageRepositoryImpl2()  // 예시로 직접 생성, 실제로는 다른 방법을 사용할 수 있습니다.
-        val viewModelFactory = CameraViewModelFactory(imageRepository)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(CameraViewModel::class.java)
+        viewModel = ViewModelProvider(this, AppViewModelProvider.Factory)[CameraViewModel::class.java]
 
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSIONS, 0)

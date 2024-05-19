@@ -24,14 +24,12 @@ class MyScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val imageRepository = ImageRepositoryImpl()
-        val viewModelFactory = MyScreenViewModelFactory(imageRepository)
-        viewModel = ViewModelProvider(this, viewModelFactory).get(MyScreenViewModel::class.java)
+        viewModel = ViewModelProvider(this, AppViewModelProvider.Factory)[MyScreenViewModel::class.java]
 
 
         setContent {
             val viewModel: MyScreenViewModel = viewModel()
-            viewModel.loadImage(1)
+            viewModel.loadImage(0)
             MyScreen(viewModel)
         }
     }

@@ -5,12 +5,13 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
 import androidx.room.Dao
+import androidx.room.OnConflictStrategy
 import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface ImageDao {
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertImage(imageEntity: ImageEntity)
 
     @Update

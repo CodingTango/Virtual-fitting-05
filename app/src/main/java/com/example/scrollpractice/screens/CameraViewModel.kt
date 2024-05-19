@@ -1,3 +1,5 @@
+package com.example.scrollpractice.screens
+
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

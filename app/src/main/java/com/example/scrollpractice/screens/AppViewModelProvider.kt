@@ -13,7 +13,7 @@ object AppViewModelProvider {
         // Initializer for CameraViewModel
         initializer {
             val application = (this[AndroidViewModelFactory.APPLICATION_KEY] as ImageApplication)
-            CameraViewModel(application.container.imageRepository)
+            CameraViewModel(application.container.imageRepository, application)
         }
         // Initializer for MyScreenViewModel
         initializer {

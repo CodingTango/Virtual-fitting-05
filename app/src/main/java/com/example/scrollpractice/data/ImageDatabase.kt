@@ -11,7 +11,7 @@ import androidx.room.RoomDatabase
 @Database(entities = [ImageEntity::class], version = 1, exportSchema = false)
 abstract class ImageDatabase : RoomDatabase() {
 
-    abstract fun ImageDao(): ImageDao
+    abstract fun imageDao(): ImageDao
 
     companion object {
         @Volatile

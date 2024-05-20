@@ -1,6 +1,5 @@
 package com.example.scrollpractice.screens
 
-// MyScreenActivity.kt
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,7 +14,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.scrollpractice.ui.theme.ScrollPracticeTheme
 
 class MyScreenActivity : ComponentActivity() {
 
@@ -24,19 +23,23 @@ class MyScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // ViewModel 초기화
         viewModel = ViewModelProvider(this, AppViewModelProvider.Factory)[MyScreenViewModel::class.java]
 
-
         setContent {
-            val viewModel: MyScreenViewModel = viewModel()
-            viewModel.loadImage(0)
-            MyScreen(viewModel)
+            ScrollPracticeTheme {
+                MyScreen(viewModel)
+            }
         }
     }
 
     @Composable
     fun MyScreen(viewModel: MyScreenViewModel) {
         val context = LocalContext.current
+
+        LaunchedEffect(Unit) {
+            viewModel.loadImage(0)
+        }
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -61,7 +64,11 @@ class MyScreenActivity : ComponentActivity() {
     fun DisplayImage(viewModel: MyScreenViewModel) {
         val imageBitmap by viewModel.imageBitmap.collectAsState()
         if (imageBitmap != null) {
-            androidx.compose.foundation.Image(bitmap = imageBitmap!!.asImageBitmap(), contentDescription = "User Picture", modifier = Modifier.size(300.dp))
+            androidx.compose.foundation.Image(
+                bitmap = imageBitmap!!.asImageBitmap(),
+                contentDescription = "User Picture",
+                modifier = Modifier.size(300.dp)
+            )
         } else {
             Text("No image selected")
         }

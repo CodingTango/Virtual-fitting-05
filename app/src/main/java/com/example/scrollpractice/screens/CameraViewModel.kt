@@ -1,5 +1,6 @@
 package com.example.scrollpractice.screens
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,13 +9,35 @@ import com.example.scrollpractice.data.ImageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
-class CameraViewModel(private val imageRepository: ImageRepository) : ViewModel() {
+class CameraViewModel(private val imageRepository: ImageRepository, private val context: Context) : ViewModel() {
 
     fun saveImage(imageData: ByteArray) {
         viewModelScope.launch {
-            val imageEntity = ImageEntity(imageData = imageData)
-            imageRepository.insertImage(imageEntity)
+            val filename = "image_${System.currentTimeMillis()}.jpg"
+            val filePath = saveImageToFile(imageData, filename)
+            if (filePath != null) {
+                val imageEntity = ImageEntity(imagePath = filePath)
+                imageRepository.insertImage(imageEntity)
+            } else {
+                // 파일 저장 실패 시 처리
+            }
+        }
+    }
+
+    private fun saveImageToFile(imageData: ByteArray, filename: String): String? {
+        val file = File(context.filesDir, filename)
+        return try {
+            val fos = FileOutputStream(file)
+            fos.write(imageData)
+            fos.close()
+            file.absolutePath
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
         }
     }
 

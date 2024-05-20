@@ -3,12 +3,14 @@
 package com.example.scrollpractice.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetScaffold
@@ -61,7 +64,6 @@ class CameraActivity : ComponentActivity() {
 
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSIONS, 0)
-            // 여기에 return을 넣으면 카메라 실행시 화면이 하얗게 변한다.
         }
 
         cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA  // Default selector
@@ -141,6 +143,16 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
+                                    finish()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "finish"
+                                )
+                            }
+                            IconButton(
+                                onClick = {
                                     takePhotoAndSave()
                                 }
                             ) {
@@ -149,20 +161,14 @@ class CameraActivity : ComponentActivity() {
                                     contentDescription = "Take photo"
                                 )
                             }
-
                         }
                     }
-
                 }
             }
         }
     }
 
     private fun takePhotoAndSave() {
-        val imageCapture = ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .build()
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
@@ -172,14 +178,13 @@ class CameraActivity : ComponentActivity() {
 
                 imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-
-                        val rotationDegrees = image.imageInfo.rotationDegrees  // Get rotation degrees from the ImageProxy
+                        val rotationDegrees = image.imageInfo.rotationDegrees
                         val bitmap = imageProxyToBitmap(image, rotationDegrees)
                         val stream = ByteArrayOutputStream()
                         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
                         val imageData = stream.toByteArray()
                         viewModel.saveImage(imageData)
-                        finish()
+                        showToast(this@CameraActivity, "image captured!")
                         image.close()
                     }
 
@@ -193,6 +198,10 @@ class CameraActivity : ComponentActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun imageProxyToBitmap(image: ImageProxy, rotationDegrees: Int): Bitmap {
         val buffer = image.planes[0].buffer
         buffer.rewind()
@@ -200,26 +209,22 @@ class CameraActivity : ComponentActivity() {
         buffer.get(bytes)
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
 
-        // Rotate the bitmap according to the captured image's rotation degrees
-        val matrix = Matrix()
-        matrix.postRotate(rotationDegrees.toFloat())
+        val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-
     private fun hasRequiredPermissions(): Boolean {
         return CAMERA_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(
-                applicationContext,
-                it
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
     companion object {
         private val CAMERA_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.RECORD_AUDIO
         )
     }
+
+
 }

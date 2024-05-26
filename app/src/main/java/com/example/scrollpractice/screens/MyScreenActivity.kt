@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -19,6 +20,13 @@ import com.example.scrollpractice.ui.theme.ScrollPracticeTheme
 class MyScreenActivity : ComponentActivity() {
 
     private lateinit var viewModel: MyScreenViewModel
+
+    private val startForResult =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK) {
+                viewModel.loadLatestImage()
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,7 +56,7 @@ class MyScreenActivity : ComponentActivity() {
         ) {
             DisplayImage(viewModel)
             Button(onClick = {
-                context.startActivity(Intent(context, CameraActivity::class.java))
+                startForResult.launch(Intent(context, CameraActivity::class.java))
             }) {
                 Text("Open Camera")
             }

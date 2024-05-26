@@ -143,6 +143,7 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
+                                    setResult(RESULT_OK)
                                     finish()
                                 }
                             ) {

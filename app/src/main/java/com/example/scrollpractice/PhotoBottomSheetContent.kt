@@ -23,7 +23,7 @@ fun PhotoBottomSheetContent(
     bitmaps: List<Bitmap>,
     modifier: Modifier = Modifier
 ) {
-    if(bitmaps.isEmpty()) {
+    if (bitmaps.isEmpty()) {
         Box(
             modifier = modifier
                 .padding(16.dp),
@@ -39,12 +39,14 @@ fun PhotoBottomSheetContent(
             contentPadding = PaddingValues(16.dp),
             modifier = modifier
         ) {
-            items(bitmaps){bitmap ->
+            items(bitmaps) { bitmap ->
                 Image(
                     bitmap = bitmap.asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier
+                        .padding(8.dp)
                         .clip(RoundedCornerShape(10.dp))
+                        .padding(16.dp)
                 )
             }
         }

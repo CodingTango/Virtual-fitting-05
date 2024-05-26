@@ -3,15 +3,14 @@
 package com.example.scrollpractice.screens
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.camera.core.CameraSelector
@@ -30,6 +29,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.BottomSheetScaffold
@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,25 +46,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.ViewModelProvider
 import com.example.scrollpractice.CameraPreview
-import com.example.scrollpractice.MainViewModel
 import com.example.scrollpractice.PhotoBottomSheetContent
 import com.example.scrollpractice.ui.theme.ScrollPracticeTheme
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import java.io.File
-import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.io.ByteArrayOutputStream
 
 class CameraActivity : ComponentActivity() {
     private lateinit var cameraSelector: CameraSelector
     private lateinit var imageCapture: ImageCapture
+    private lateinit var viewModel: CameraViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel = ViewModelProvider(this, AppViewModelProvider.Factory)[CameraViewModel::class.java]
+
         if (!hasRequiredPermissions()) {
             ActivityCompat.requestPermissions(this, CAMERA_PERMISSIONS, 0)
         }
@@ -83,7 +81,7 @@ class CameraActivity : ComponentActivity() {
                         this.cameraSelector = cameraSelector
                     }
                 }
-                val viewModel = viewModel<MainViewModel>()
+
                 val bitmaps by viewModel.bitmaps.collectAsState()
 
                 BottomSheetScaffold(
@@ -145,6 +143,17 @@ class CameraActivity : ComponentActivity() {
                             }
                             IconButton(
                                 onClick = {
+                                    setResult(RESULT_OK)
+                                    finish()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "finish"
+                                )
+                            }
+                            IconButton(
+                                onClick = {
                                     takePhotoAndSave()
                                 }
                             ) {
@@ -153,20 +162,14 @@ class CameraActivity : ComponentActivity() {
                                     contentDescription = "Take photo"
                                 )
                             }
-
                         }
                     }
-
                 }
             }
         }
     }
 
     private fun takePhotoAndSave() {
-        val imageCapture = ImageCapture.Builder()
-            .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-            .build()
-
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
@@ -174,18 +177,15 @@ class CameraActivity : ComponentActivity() {
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(this, cameraSelector, imageCapture)
 
-                val photoFile = createImageFile()
                 imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
-
-                        val rotationDegrees = image.imageInfo.rotationDegrees  // Get rotation degrees from the ImageProxy
+                        val rotationDegrees = image.imageInfo.rotationDegrees
                         val bitmap = imageProxyToBitmap(image, rotationDegrees)
-                        saveBitmapToFile(bitmap, photoFile)
-                        val resultIntent = Intent().apply {
-                            putExtra("photo_path", photoFile.absolutePath)
-                        }
-                        setResult(Activity.RESULT_OK, resultIntent)
-                        finish()
+                        val stream = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
+                        val imageData = stream.toByteArray()
+                        viewModel.saveImage(imageData)
+                        showToast(this@CameraActivity, "image captured!")
                         image.close()
                     }
 
@@ -199,6 +199,10 @@ class CameraActivity : ComponentActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    fun showToast(context: Context, message: String) {
+        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     private fun imageProxyToBitmap(image: ImageProxy, rotationDegrees: Int): Bitmap {
         val buffer = image.planes[0].buffer
         buffer.rewind()
@@ -206,38 +210,20 @@ class CameraActivity : ComponentActivity() {
         buffer.get(bytes)
         val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, null)
 
-        // Rotate the bitmap according to the captured image's rotation degrees
-        val matrix = Matrix()
-        matrix.postRotate(rotationDegrees.toFloat())
+        val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 
-    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
-        FileOutputStream(file).use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-        }
-    }
-
-    private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File = getExternalFilesDir(Environment.DIRECTORY_PICTURES)!!
-        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
-    }
-
-
     private fun hasRequiredPermissions(): Boolean {
         return CAMERA_PERMISSIONS.all {
-            ContextCompat.checkSelfPermission(
-                applicationContext,
-                it
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(applicationContext, it) == PackageManager.PERMISSION_GRANTED
         }
     }
 
     companion object {
         private val CAMERA_PERMISSIONS = arrayOf(
             Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO,
+            Manifest.permission.RECORD_AUDIO
         )
     }
 }

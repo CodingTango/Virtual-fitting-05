@@ -222,8 +222,7 @@ class CameraActivity : ComponentActivity() {
 
     companion object {
         private val CAMERA_PERMISSIONS = arrayOf(
-            Manifest.permission.CAMERA,
-            Manifest.permission.RECORD_AUDIO
+            Manifest.permission.CAMERA
         )
     }
 }

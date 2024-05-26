@@ -38,7 +38,7 @@ class MyScreenActivity : ComponentActivity() {
         val context = LocalContext.current
 
         LaunchedEffect(Unit) {
-            viewModel.loadImage(0)
+            viewModel.loadLatestImage()
         }
 
         Column(

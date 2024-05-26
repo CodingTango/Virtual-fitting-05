@@ -11,4 +11,6 @@ class OfflineImageRepository(private val imageDao: ImageDao) : ImageRepository {
     override suspend fun deleteImage(imageEntity: ImageEntity) = imageDao.delete(imageEntity)
 
     override suspend fun updateImage(imageEntity: ImageEntity) = imageDao.update(imageEntity)
+
+    override suspend fun getLatestImage(): ImageEntity? = imageDao.getLatestImage() // 구현된 메소드
 }

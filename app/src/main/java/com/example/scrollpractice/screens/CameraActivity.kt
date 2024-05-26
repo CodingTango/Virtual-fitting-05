@@ -225,6 +225,4 @@ class CameraActivity : ComponentActivity() {
             Manifest.permission.RECORD_AUDIO
         )
     }
-
-
 }

@@ -22,4 +22,7 @@ interface ImageDao {
 
     @Query("SELECT * FROM images WHERE id = :id")
     fun getImageById(id: Int): Flow<ImageEntity?>
+
+    @Query("SELECT * FROM images ORDER BY id DESC LIMIT 1")
+    suspend fun getLatestImage(): ImageEntity?
 }

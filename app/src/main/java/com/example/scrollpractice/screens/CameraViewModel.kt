@@ -2,6 +2,7 @@ package com.example.scrollpractice.screens
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.scrollpractice.data.ImageEntity
@@ -22,11 +23,14 @@ class CameraViewModel(private val imageRepository: ImageRepository, private val 
             if (filePath != null) {
                 val imageEntity = ImageEntity(imagePath = filePath)
                 imageRepository.insertImage(imageEntity)
+                val bitmap = BitmapFactory.decodeFile(filePath)
+                _bitmaps.value += bitmap
             } else {
                 // 파일 저장 실패 시 처리
             }
         }
     }
+
 
     private fun saveImageToFile(imageData: ByteArray, filename: String): String? {
         val file = File(context.filesDir, filename)

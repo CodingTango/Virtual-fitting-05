@@ -16,7 +16,24 @@ class MyScreenViewModel(private val imageRepository: ImageRepository) : ViewMode
     private val _imageBitmap = MutableStateFlow<Bitmap?>(null)
     val imageBitmap = _imageBitmap.asStateFlow()
 
-    fun loadImage(id: Int) {
+    fun loadLatestImage() {
+        viewModelScope.launch {
+            try {
+                val latestImageEntity = imageRepository.getLatestImage()
+                latestImageEntity?.let {
+                    loadImage(it.id)
+                } ?: run {
+                    _imageBitmap.value = null
+                    Log.e("MyScreenViewModel", "No images found")
+                }
+            } catch (e: Exception) {
+                _imageBitmap.value = null
+                Log.e("MyScreenViewModel", "Error loading latest image", e)
+            }
+        }
+    }
+
+    private fun loadImage(id: Int) {
         viewModelScope.launch {
             try {
                 imageRepository.getImageStream(id).collect { imageEntity ->
@@ -28,7 +45,6 @@ class MyScreenViewModel(private val imageRepository: ImageRepository) : ViewMode
                             _imageBitmap.value = bitmap
                         } else {
                             _imageBitmap.value = null
-                            // Log the error if the file does not exist
                             Log.e("MyScreenViewModel", "File does not exist: $imagePath")
                         }
                     }

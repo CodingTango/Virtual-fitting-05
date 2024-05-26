@@ -11,4 +11,6 @@ interface ImageRepository {
     suspend fun deleteImage(imageEntity: ImageEntity)
 
     suspend fun updateImage(imageEntity: ImageEntity)
+
+    suspend fun getLatestImage(): ImageEntity? // 추가된 메소드
 }

@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ScrollPractice"
+rootProject.name = "VirtualFitting"
 include(":app")

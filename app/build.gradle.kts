@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.scrollpractice"
+    namespace = "com.example.virtualfitting"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.scrollpractice"
+        applicationId = "com.example.virtualfitting"
         minSdk = 34
         targetSdk = 34
         versionCode = 1

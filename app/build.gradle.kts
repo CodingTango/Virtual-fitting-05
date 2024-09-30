@@ -113,6 +113,12 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
+    // Add the dependency for the Cloud Storage library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-storage")
+
+    // Coil (이미지 로딩 라이브러리)
+    implementation("io.coil-kt:coil-compose:2.2.2")
 
 
 }

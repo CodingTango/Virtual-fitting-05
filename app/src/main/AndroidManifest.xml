@@ -19,23 +19,23 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_virtualfitting_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.ScrollPractice"
+        android:theme="@style/Theme.VirtualFitting"
         tools:targetApi="31">
         <activity
             android:name=".screens.MyScreenActivity"
             android:exported="false"
             android:label="@string/title_activity_my_screen"
-            android:theme="@style/Theme.ScrollPractice" />
+            android:theme="@style/Theme.VirtualFitting" />
         <activity
             android:name=".screens.CameraActivity"
             android:exported="false"
             android:label="@string/title_activity_camera"
-            android:theme="@style/Theme.ScrollPractice" />
+            android:theme="@style/Theme.VirtualFitting" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.ScrollPractice">
+            android:theme="@style/Theme.VirtualFitting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

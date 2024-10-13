@@ -2,7 +2,6 @@ package com.example.virtualfitting.screens
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -22,8 +21,7 @@ import com.example.virtualfitting.ui.theme.ScrollPracticeTheme
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.ktx.storage
 import com.google.firebase.ktx.Firebase
-import java.io.File
-import java.io.FileOutputStream
+import java.io.ByteArrayOutputStream
 
 class MyScreenActivity : ComponentActivity() {
 
@@ -117,23 +115,22 @@ class MyScreenActivity : ComponentActivity() {
 
     // 이미지 업로드 기능
     fun uploadImage(bitmap: Bitmap) {
+        val storage = FirebaseStorage.getInstance()
         val storageRef = storage.reference
-        val usersRef = storageRef.child("users/user.jpg")
 
-        // Bitmap을 Uri로 변환하여 Firebase에 업로드
-        val file = File(applicationContext.cacheDir, "user_image.jpg")
-        val outputStream = FileOutputStream(file)
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        outputStream.flush()
-        outputStream.close()
+        val userImageRef = storageRef.child("users/user.jpg")
+        // Bitmap 을 ByteArray 로 변환
+        val baos = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
+        val data = baos.toByteArray()
 
-        val uri = Uri.fromFile(file)
-
-        val uploadTask = usersRef.putFile(uri)
-        uploadTask.addOnSuccessListener {
-            Toast.makeText(this, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
-        }.addOnFailureListener {
+        val uploadTask = userImageRef.putBytes(data)
+        uploadTask.addOnFailureListener {
+            // 업로드 실패 처리
             Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
+        }.addOnSuccessListener { taskSnapshot ->
+            // 업로드 성공 처리
+            Toast.makeText(this, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
         }
     }
 }

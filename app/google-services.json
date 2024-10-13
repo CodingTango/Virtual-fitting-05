@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1095545133950",
+    "project_id": "virtual-fitting-05-438415",
+    "storage_bucket": "virtual-fitting-05-438415.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1095545133950:android:63d5a47e75997f92f9712f",
+        "android_client_info": {
+          "package_name": "com.example.virtualfitting"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0o0eP53QAj-Fonld66qVg_u8t8hl_mwo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -18,14 +18,26 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import com.example.virtualfitting.ui.theme.ScrollPracticeTheme
-import com.google.firebase.storage.FirebaseStorage
-import com.google.firebase.storage.ktx.storage
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 class MyScreenActivity : ComponentActivity() {
 
     private lateinit var viewModel: MyScreenViewModel
+    private val client = OkHttpClient()
+
+    // Cloud Function URL 설정
+    private val cloudFunctionUrl = "https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/upload-user-image"
 
     private val startForResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -33,10 +45,6 @@ class MyScreenActivity : ComponentActivity() {
                 viewModel.loadLatestImage()
             }
         }
-
-    // [START storage_field_declaration]
-    lateinit var storage: FirebaseStorage
-    // [END storage_field_declaration]
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,19 +57,15 @@ class MyScreenActivity : ComponentActivity() {
                 MyScreen(viewModel)
             }
         }
-
-        // [START storage_field_initialization]
-        storage = Firebase.storage
-        // [END storage_field_initialization]
     }
 
     @Composable
     fun MyScreen(viewModel: MyScreenViewModel) {
         val context = LocalContext.current
-        val imageBitmap by viewModel.imageBitmap.collectAsState() // 이미지 상태 감지
+        val imageBitmap by viewModel.imageBitmap.collectAsState()
 
         LaunchedEffect(Unit) {
-            viewModel.loadLatestImage() // 최신 이미지를 로드
+            viewModel.loadLatestImage()
         }
 
         Column(
@@ -77,11 +81,10 @@ class MyScreenActivity : ComponentActivity() {
                 Text("Open Camera")
             }
 
-            // 이미지가 있을 때만 Upload Image 버튼을 표시
             if (imageBitmap != null) {
                 Button(onClick = {
                     imageBitmap?.let {
-                        uploadImage(it) // 이미지 업로드
+                        uploadImage(it)
                     }
                 }) {
                     Text("Upload Image")
@@ -101,36 +104,55 @@ class MyScreenActivity : ComponentActivity() {
         val imageBitmap by viewModel.imageBitmap.collectAsState()
 
         if (imageBitmap != null) {
-            // 이미지가 있을 때만 표시
             androidx.compose.foundation.Image(
                 bitmap = imageBitmap!!.asImageBitmap(),
                 contentDescription = "User Picture",
                 modifier = Modifier.size(300.dp)
             )
         } else {
-            // 이미지가 없을 때 메시지 표시
             Text("No image selected")
         }
     }
 
-    // 이미지 업로드 기능
-    fun uploadImage(bitmap: Bitmap) {
-        val storage = FirebaseStorage.getInstance()
-        val storageRef = storage.reference
+    // Cloud Function을 통해 이미지 업로드 기능
+    private fun uploadImage(bitmap: Bitmap) {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                // Bitmap을 JPEG 형식의 임시 파일로 변환
+                val tempFile = File.createTempFile("upload", ".jpg")
+                val outputStream = FileOutputStream(tempFile)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                outputStream.flush()
+                outputStream.close()
 
-        val userImageRef = storageRef.child("users/user.jpg")
-        // Bitmap 을 ByteArray 로 변환
-        val baos = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos)
-        val data = baos.toByteArray()
+                // Cloud Function URL에 요청할 MultipartBody 생성
+                val requestBody = tempFile.asRequestBody("image/jpeg".toMediaTypeOrNull())
+                val multipartBody = MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("image", tempFile.name, requestBody)
+                    .build()
 
-        val uploadTask = userImageRef.putBytes(data)
-        uploadTask.addOnFailureListener {
-            // 업로드 실패 처리
-            Toast.makeText(this, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
-        }.addOnSuccessListener { taskSnapshot ->
-            // 업로드 성공 처리
-            Toast.makeText(this, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
+                // HTTP 요청 생성
+                val request = Request.Builder()
+                    .url(cloudFunctionUrl)
+                    .post(multipartBody)
+                    .build()
+
+                // 요청 실행 및 응답 처리
+                val response = client.newCall(request).execute()
+
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@MyScreenActivity, "사진 업로드 성공", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this@MyScreenActivity, "사진 업로드 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MyScreenActivity, "에러 발생: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

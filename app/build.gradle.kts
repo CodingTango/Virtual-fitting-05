@@ -120,5 +120,8 @@ dependencies {
     // Coil (이미지 로딩 라이브러리)
     implementation("io.coil-kt:coil-compose:2.2.2")
 
+    // 하단 바
+    implementation(platform("androidx.compose:compose-bom:2024.09.03"))
+    implementation("androidx.compose.material:material-icons-extended")
 
 }

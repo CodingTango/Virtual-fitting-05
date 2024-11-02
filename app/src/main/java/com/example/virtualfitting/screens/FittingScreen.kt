@@ -17,7 +17,6 @@ import kotlinx.coroutines.tasks.await
 @Composable
 fun FittingScreen(onBackButtonClicked: () -> Unit) {
     var userImageUri by remember { mutableStateOf<Uri?>(null) }
-    var clothImageUri by remember { mutableStateOf<Uri?>(null) }
     var loading by remember { mutableStateOf(true) } // 로딩 상태 추가
     var errorMessage by remember { mutableStateOf<String?>(null) } // 오류 메시지 추가
 
@@ -26,14 +25,9 @@ fun FittingScreen(onBackButtonClicked: () -> Unit) {
         val storage = FirebaseStorage.getInstance()
 
         try {
-            // user 이미지 불러오기
-            val userRef = storage.reference.child("users/user.jpg") // 경로 수정
+            // output_test 이미지 불러오기
+            val userRef = storage.reference.child("openpose/output_test/user_rendered.png")
             userImageUri = userRef.downloadUrl.await()
-
-            // cloth1 이미지 불러오기
-            val clothRef = storage.reference.child("clothes/cloth1.jpg") // 경로 수정
-            clothImageUri = clothRef.downloadUrl.await()
-
             loading = false // 로딩 완료
         } catch (e: Exception) {
             loading = false // 로딩 완료
@@ -43,53 +37,35 @@ fun FittingScreen(onBackButtonClicked: () -> Unit) {
 
     Column(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center, // 로딩 및 버튼을 가운데 정렬
+        verticalArrangement = Arrangement.Center, // 콘텐츠를 중앙에 정렬
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when {
             loading -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text("Loading...")
-                    Spacer(modifier = Modifier.height(16.dp)) // 간격 추가
-                    Button(onClick = { onBackButtonClicked() }) {
-                        Text(text = "Back")
-                    }
-                }
-            }
-            errorMessage != null -> {
-                Text(errorMessage ?: "") // null인 경우 빈 문자열로 처리
+                Text("Loading...")
+                Spacer(modifier = Modifier.height(16.dp)) // 간격 추가
                 Button(onClick = { onBackButtonClicked() }) {
                     Text(text = "Back")
                 }
             }
-            userImageUri != null && clothImageUri != null -> {
-                // Box를 사용하여 이미지와 버튼을 구성
-                Box(
+            errorMessage != null -> {
+                Text(errorMessage ?: "") // null인 경우 빈 문자열로 처리
+                Spacer(modifier = Modifier.height(16.dp)) // 간격 추가
+                Button(onClick = { onBackButtonClicked() }) {
+                    Text(text = "Back")
+                }
+            }
+            userImageUri != null -> {
+                // 이미지가 로드되었을 때 출력
+                Image(
+                    painter = rememberAsyncImagePainter(userImageUri),
+                    contentDescription = "Rendered Image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(0.8f), // 이미지 영역이 80% 차지
-                    contentAlignment = Alignment.Center
-                ) {
-                    // User 이미지 (배경)
-                    Image(
-                        painter = rememberAsyncImagePainter(userImageUri),
-                        contentDescription = "User Image",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop // 이미지 채우기
-                    )
-                    // Cloth 이미지 (앞에 배치, 절반 크기로 줄이기)
-                    Image(
-                        painter = rememberAsyncImagePainter(clothImageUri),
-                        contentDescription = "Cloth Image",
-                        modifier = Modifier.size(150.dp), // 이미지 크기를 줄임
-                        contentScale = ContentScale.Fit
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp)) // 이미지와 버튼 사이의 간격
+                        .weight(0.8f), // 이미지가 화면의 80%를 차지
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.height(16.dp)) // 이미지와 버튼 사이 간격
                 Button(onClick = { onBackButtonClicked() }) {
                     Text(text = "Back")
                 }
@@ -97,4 +73,3 @@ fun FittingScreen(onBackButtonClicked: () -> Unit) {
         }
     }
 }
-

@@ -70,6 +70,7 @@ fun SearchScreen(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
+
                 ) {
                     // Left-aligned text
 

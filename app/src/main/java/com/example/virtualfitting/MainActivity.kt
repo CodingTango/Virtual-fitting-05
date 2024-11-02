@@ -11,6 +11,7 @@ import com.example.virtualfitting.screens.FittingScreen
 import com.example.virtualfitting.screens.LoginScreen
 import com.example.virtualfitting.screens.MenuScreen
 import com.example.virtualfitting.screens.My
+import com.example.virtualfitting.screens.Product
 import com.example.virtualfitting.screens.ProductScreen
 import com.example.virtualfitting.screens.SearchScreen
 
@@ -53,14 +54,17 @@ fun MyApp() {
         }
         composable(route = "menu") {
             MenuScreen(
-                onBackButtonClicked = { navController.navigate("searchScreen") }
+                onBackButtonClicked = { navController.navigate("searchScreen") },
+                onNavigateToDetail = { navController.navigate("Product")}
             )
         }
         composable(route = "my") {
             My()
         }
         composable(route = "product"){
-            //Product()
+            Product(
+                onBackButtonClicked = { navController.navigate("searchScreen")}
+            )
         }
     }
 }

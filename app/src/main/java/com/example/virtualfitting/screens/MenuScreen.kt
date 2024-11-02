@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MenuScreen(
     onBackButtonClicked: () -> Unit,
+    onNavigateToDetail: (String) -> Unit
     ) {
     Column(
         modifier = Modifier
@@ -60,7 +61,7 @@ fun MenuScreen(
 
         // 다른 화면 요소들
         Spacer(modifier = Modifier.height(20.dp))
-        SplitScrollScreen()
+        SplitScrollScreen(onItemClick = onNavigateToDetail)
     }
 }
 
@@ -122,7 +123,7 @@ fun EmbeddedSearchBar(
     }
 }
 @Composable
-fun SplitScrollScreen() {
+fun SplitScrollScreen( onItemClick: (String)->Unit ) {
 
     val Leftlist = listOf("상의", "아우터", "하의", "신발", "가방", "액세서리", "속옷/홈웨어", "기타")
     val Rightlist = listOf(
@@ -188,11 +189,18 @@ fun SplitScrollScreen() {
             contentPadding = PaddingValues(16.dp)
         ) {
             items(Rightlist[selectedIndex].size) { index ->
+                val item = Rightlist[selectedIndex][index]
                 Text(
                     text = Rightlist[selectedIndex][index],
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
+                        .clickable {
+                            if (item == "맨투맨/스웨트") {
+                                onItemClick(item)
+                            }
+                        },
+                    color = Color.Black
                 )
             }
         }

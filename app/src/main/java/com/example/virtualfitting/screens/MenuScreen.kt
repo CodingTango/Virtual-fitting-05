@@ -103,7 +103,7 @@ fun EmbeddedSearchBar(
                     Icon(
                         imageVector = Icons.Filled.ArrowBack,
                         contentDescription = "back",
-                        tint = Color(android.graphics.Color.parseColor("#81DAF5"))
+                        tint = Color(android.graphics.Color.parseColor("#E5E7E9"))
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))

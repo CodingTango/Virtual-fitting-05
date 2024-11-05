@@ -55,7 +55,7 @@ fun Product(onBackButtonClicked: () -> Unit) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBackIosNew,
                             contentDescription = "Back",
-                            tint = Color(android.graphics.Color.parseColor("#81DAF5"))
+                            tint = Color(android.graphics.Color.parseColor("#E5E7E9"))
 
                         )
                     }

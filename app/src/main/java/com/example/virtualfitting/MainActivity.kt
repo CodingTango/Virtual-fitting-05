@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "login") {
+    NavHost(navController = navController, startDestination = "searchScreen") {
         composable("login") {
             LoginScreen(
                 onNextButtonClicked = { navController.navigate("searchScreen") }
@@ -35,8 +35,6 @@ fun MyApp() {
         }
         composable(route = "searchScreen") {
             SearchScreen(
-                onBackButtonClicked = { navController.navigate("login") },
-                onImageButton1Clicked = { navController.navigate("productScreen") },
                 onMenuButtonClicked = { navController.navigate("menu") },
                 onMyButtonClicked = { navController.navigate("my")}
             )

@@ -2,7 +2,17 @@ package com.example.virtualfitting.screens
 
 import android.content.Context
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -13,8 +23,21 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +45,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.virtualfitting.R
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,7 +122,12 @@ fun ProductDetail(
                                 .width(1.dp)
                                 .padding(horizontal = 8.dp)
                         )
-                        TextButton(onClick = { onFittingButtonClicked() }) {
+                        TextButton(onClick = {
+                            if (product != null) {
+                                sendTrigger(product.imagePath)
+                            }
+                            onFittingButtonClicked()
+                        }) {
                             Text("가상 피팅하기")
                         }
                     }
@@ -193,4 +228,43 @@ fun loadProductById(context: Context, imageId: String): CsvProduct? {
         }
     }
     return null
+}
+
+suspend fun sendTriggerToCloud(imageId: String) {
+    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
+        val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/change-test")
+        val connection = url.openConnection() as HttpURLConnection
+
+        try {
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.doOutput = true
+
+            val jsonInputString = """{"imageId": "$imageId"}"""
+            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
+
+            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
+            outputStreamWriter.write(jsonInputString)
+            outputStreamWriter.flush()
+            outputStreamWriter.close()
+
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                println("Image ID sent successfully")
+            } else {
+                println("Failed to send Image ID: $responseCode")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
+
+// 코루틴 스코프에서 비동기 호출
+fun sendTrigger(imageId: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        sendTriggerToCloud(imageId)
+    }
 }

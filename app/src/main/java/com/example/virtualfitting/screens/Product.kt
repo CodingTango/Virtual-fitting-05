@@ -40,10 +40,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 import java.text.NumberFormat
 import java.util.Locale
+
 
 data class CsvProduct(
     val imagePath: String,
@@ -187,7 +195,10 @@ fun Product(
                             brand = product.brand,
                             name = product.name,
                             price = formatPrice(product.price),
-                            onClick = { onProductClicked(product.imagePath) } // 선택한 이미지 ID 전달
+                            onClick = {
+                                sendImageId(product.imagePath) // Cloud Function에 imageId 전송
+                                onProductClicked(product.imagePath) // ProductDetail로 이동하며 ID전달
+                            }
                         )
                     }
                 }
@@ -249,3 +260,45 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String, o
         }
     }
 }
+
+
+// suspend 함수로 네트워크 작업을 비동기로 처리
+suspend fun sendImageIdToCloudFunction(imageId: String) {
+    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
+        val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/copy-selected-cloth")
+        val connection = url.openConnection() as HttpURLConnection
+
+        try {
+            connection.requestMethod = "POST"
+            connection.setRequestProperty("Content-Type", "application/json")
+            connection.doOutput = true
+
+            val jsonInputString = """{"imageId": "$imageId"}"""
+            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
+
+            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
+            outputStreamWriter.write(jsonInputString)
+            outputStreamWriter.flush()
+            outputStreamWriter.close()
+
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                println("Image ID sent successfully")
+            } else {
+                println("Failed to send Image ID: $responseCode")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
+
+// 코루틴 스코프에서 비동기 호출
+fun sendImageId(imageId: String) {
+    CoroutineScope(Dispatchers.IO).launch {
+        sendImageIdToCloudFunction(imageId)
+    }
+}
+

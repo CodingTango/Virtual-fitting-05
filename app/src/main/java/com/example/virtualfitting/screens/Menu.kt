@@ -16,12 +16,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
@@ -39,30 +40,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun MenuScreen(
+fun Menu(
     onBackButtonClicked: () -> Unit,
-    onNavigateToDetail: (String) -> Unit
-    ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 검색 창을 상단에 고정
-        EmbeddedSearchBar(
-            onQueryChange = { /* 검색어 변경 처리 */ },
-            isSearchActive = true,
-            onActiveChanged = { /* 검색 활성화 상태 변경 처리 */ },
-            onSearch = { /* 검색 실행 처리 */ },
-            onBackButtonClick = { onBackButtonClicked() } // 뒤로가기 버튼 클릭 시 뒤로 가기
-        )
+    onNavigateToDetail: (String) -> Unit,
+    onMenuButtonClicked: () -> Unit,
+    onMyButtonClicked: () -> Unit,
+    onHomeButtonClicked: () -> Unit
+) {
+    var selectedIcon by remember { mutableStateOf("Menu") }
 
-        // 다른 화면 요소들
-        Spacer(modifier = Modifier.height(20.dp))
-        SplitScrollScreen(onItemClick = onNavigateToDetail)
-    }
+    Scaffold(
+        containerColor = Color.White,
+        bottomBar = {
+            BottomNavigationBar(
+                selectedIcon = selectedIcon,
+                onIconSelected = { selectedIcon = it },
+                onMenuButtonClicked = onMenuButtonClicked,
+                onMyButtonClicked = onMyButtonClicked,
+                onHomeButtonClicked = onHomeButtonClicked
+            )
+        },
+        content = { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                // 검색 창을 상단에 고정
+                EmbeddedSearchBar(
+                    onQueryChange = { /* 검색어 변경 처리 */ },
+                    isSearchActive = true,
+                    onActiveChanged = { /* 검색 활성화 상태 변경 처리 */ },
+                    onSearch = { /* 검색 실행 처리 */ },
+                    onBackButtonClick = { onBackButtonClicked() } // 뒤로가기 버튼 클릭 시 뒤로 가기
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                SplitScrollScreen(onItemClick = onNavigateToDetail)
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +89,7 @@ fun EmbeddedSearchBar(
     isSearchActive: Boolean,
     onActiveChanged: (Boolean) -> Unit,
     onSearch: ((String) -> Unit)? = null,
-    onBackButtonClick: () -> Unit, // 뒤로가기 버튼 클릭 콜백 추가
+    onBackButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val searchQuery = rememberSaveable { mutableStateOf("") }
@@ -82,26 +99,25 @@ fun EmbeddedSearchBar(
         onActiveChanged(active)
     }
 
-
-            SearchBar(
-                      query = searchQuery.value,
-                      onQueryChange = { query ->
-                          searchQuery.value = query
-                          onQueryChange(query)
-                      },
-                      onSearch = { onSearch?.invoke(searchQuery.value) },
-                      active = isSearchActive,
-                      onActiveChange = activeChanged,
-                      modifier = modifier
-                          .fillMaxWidth()
-                            .height(56.dp)
-                            .clip(RoundedCornerShape(20.dp)),
+    SearchBar(
+        query = searchQuery.value,
+        onQueryChange = { query ->
+            searchQuery.value = query
+            onQueryChange(query)
+        },
+        onSearch = { onSearch?.invoke(searchQuery.value) },
+        active = isSearchActive,
+        onActiveChange = activeChanged,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(56.dp)
+            .clip(RoundedCornerShape(20.dp)),
         placeholder = { Text("Search") },
         leadingIcon = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(onClick = { onBackButtonClick() }) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.Filled.ArrowBackIosNew,
                         contentDescription = "back",
                         tint = Color(android.graphics.Color.parseColor("#E5E7E9"))
                     )
@@ -122,9 +138,9 @@ fun EmbeddedSearchBar(
         // 검색 제안이나 결과 표시
     }
 }
-@Composable
-fun SplitScrollScreen( onItemClick: (String)->Unit ) {
 
+@Composable
+fun SplitScrollScreen(onItemClick: (String) -> Unit) {
     val Leftlist = listOf("상의", "아우터", "하의", "신발", "가방", "액세서리", "속옷/홈웨어", "기타")
     val Rightlist = listOf(
         listOf("전체", "BEST", "NEW", "맨투맨/스웨트", "셔츠/블라우스", "후드 티셔츠", "니트웨어", "반소매 티셔츠", "긴소매 티셔츠", "기타 상의"),
@@ -144,12 +160,11 @@ fun SplitScrollScreen( onItemClick: (String)->Unit ) {
             .fillMaxSize()
             .padding(5.dp)
     ) {
-        // 왼쪽 LazyColumn
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f) // 화면의 반을 차지하도록 weight 설정
-                .padding(end=4.dp),
+                .weight(1f)
+                .padding(end = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(16.dp)
         ) {
@@ -162,15 +177,13 @@ fun SplitScrollScreen( onItemClick: (String)->Unit ) {
                         .background(
                             if (index == selectedIndex) Color.LightGray else Color.Transparent
                         )
-                        .clickable{
+                        .clickable {
                             selectedIndex = index
                         },
                     color = Color.Black
                 )
             }
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
 
         VerticalDivider(
             color = Color.Gray,
@@ -179,19 +192,18 @@ fun SplitScrollScreen( onItemClick: (String)->Unit ) {
                 .width(1.dp)
         )
 
-        // 하단 LazyColumn
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f) // 나머지 반을 차지하도록 weight 설정
-                .padding(start = 4.dp ),
+                .weight(1f)
+                .padding(start = 4.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(16.dp)
         ) {
             items(Rightlist[selectedIndex].size) { index ->
                 val item = Rightlist[selectedIndex][index]
                 Text(
-                    text = Rightlist[selectedIndex][index],
+                    text = item,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(8.dp)
@@ -206,3 +218,72 @@ fun SplitScrollScreen( onItemClick: (String)->Unit ) {
         }
     }
 }
+/*
+@Composable
+fun BottomNavigationBar(
+    selectedIcon: String,
+    onIconSelected: (String) -> Unit,
+    onMenuButtonClicked: () -> Unit,
+    onMyButtonClicked: () -> Unit,
+    onHomeButtonClicked: () -> Unit
+) {
+    Column {
+        HorizontalDivider(color = Color.Gray, thickness = 1.dp)
+        BottomAppBar(
+            modifier = Modifier.height(70.dp),
+            containerColor = Color.White,
+            content = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BottomBarItem(
+                        icon = Icons.Filled.Menu,
+                        label = "Menu",
+                        isSelected = selectedIcon == "Menu",
+                        onClick = {
+                            onIconSelected("Menu")
+                            onMenuButtonClicked()
+                        },
+                        colorCode = "#ABB2B9"
+                    )
+                    BottomBarItem(
+                        icon = Icons.Filled.Search,
+                        label = "Search",
+                        isSelected = selectedIcon == "Search",
+                        onClick = { onIconSelected("Search") },
+                        colorCode = "#ABB2B9"
+                    )
+                    BottomBarItem(
+                        icon = Icons.Filled.Home,
+                        label = "Home",
+                        isSelected = selectedIcon == "Home",
+                        onClick = {
+                            onIconSelected("Home")
+                            onHomeButtonClicked()
+                        },
+                        colorCode = "#ABB2B9"
+                    )
+                    BottomBarItem(
+                        icon = Icons.Filled.Favorite,
+                        label = "Favorite",
+                        isSelected = selectedIcon == "Favorite",
+                        onClick = { onIconSelected("Favorite") },
+                        colorCode = "#ABB2B9"
+                    )
+                    BottomBarItem(
+                        icon = Icons.Filled.Person,
+                        label = "My",
+                        isSelected = selectedIcon == "My",
+                        onClick = {
+                            onIconSelected("My")
+                            onMyButtonClicked()
+                        },
+                        colorCode = "#ABB2B9"
+                    )
+                }
+            }
+        )
+    }
+}*/

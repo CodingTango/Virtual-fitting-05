@@ -8,13 +8,11 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.virtualfitting.screens.FittingScreen
-import com.example.virtualfitting.screens.LoginScreen
-import com.example.virtualfitting.screens.MenuScreen
+import com.example.virtualfitting.screens.Home
+import com.example.virtualfitting.screens.Menu
 import com.example.virtualfitting.screens.My
 import com.example.virtualfitting.screens.Product
-
-import com.example.virtualfitting.screens.ProductScreen
-import com.example.virtualfitting.screens.SearchScreen
+import com.example.virtualfitting.screens.ProductDetail
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,41 +26,54 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MyApp() {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = "searchScreen") {
-        composable("login") {
-            LoginScreen(
-                onNextButtonClicked = { navController.navigate("searchScreen") }
-            )
-        }
-        composable(route = "searchScreen") {
-            SearchScreen(
+    NavHost(navController = navController, startDestination = "home") {
+
+        composable(route = "home") {
+            Home(
                 onMenuButtonClicked = { navController.navigate("menu") },
-                onMyButtonClicked = { navController.navigate("my")}
+                onMyButtonClicked = { navController.navigate("my")},
+                onHomeButtonClicked = {navController.navigate("home")}
             )
         }
-        composable(route = "productScreen") {
-            ProductScreen(
+        composable(route = "productdetail") {
+            ProductDetail(
                 onFittingButtonClicked = { navController.navigate("fittingScreen") },
-                onBackButtonClicked = { navController.navigate("searchScreen") }
+                onBackButtonClicked = { navController.navigate("product") },
+                onHomeButtonClicked = { navController.navigate("home") },
+                onMenuButtonClicked = { navController.navigate("menu") },
+
+
             )
         }
         composable(route = "fittingScreen") {
             FittingScreen(
-                onBackButtonClicked = { navController.navigate("productScreen") }
+                onBackButtonClicked = { navController.navigate("productdetail") }
             )
         }
         composable(route = "menu") {
-            MenuScreen(
-                onBackButtonClicked = { navController.navigate("searchScreen") },
+            Menu(
+                onBackButtonClicked = { navController.navigate("home") },
+                onMenuButtonClicked = { navController.navigate("menu") },
+                onMyButtonClicked = { navController.navigate("my")},
+                onHomeButtonClicked = {navController.navigate("home")},
                 onNavigateToDetail = { navController.navigate("Product")}
             )
         }
         composable(route = "my") {
-            My()
+            My(
+                onMenuButtonClicked = { navController.navigate("menu") },
+                onMyButtonClicked = { navController.navigate("my") },
+                onHomeButtonClicked = { navController.navigate("home") }
+            )
         }
         composable(route = "product"){
             Product(
-                onBackButtonClicked = { navController.navigate("searchScreen")}
+                onBackButtonClicked = { navController.navigate("menu")},
+                onMenuButtonClicked = { navController.navigate("menu") },
+                onMyButtonClicked = { navController.navigate("my") },
+                onHomeButtonClicked = { navController.navigate("home") },
+                onProductClicked = { navController.navigate("productdetail") }
+
             )
         }
     }

@@ -4,6 +4,8 @@ plugins {
     id("com.google.devtools.ksp") version "1.9.20-1.0.14"
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
+    id("kotlin-parcelize")
+    id("kotlin-android")
 }
 
 android {
@@ -133,4 +135,11 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-pager:0.28.0")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.28.0")
+
+    // Firebase BoM 추가
+    implementation(platform("com.google.firebase:firebase-bom:33.4.0"))
+
+// Firebase Analytics 추가
+    implementation("com.google.firebase:firebase-analytics")
+
 }

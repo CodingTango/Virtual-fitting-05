@@ -2,6 +2,7 @@ package com.example.virtualfitting.screens
 
 import android.content.Context
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,7 +28,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +45,6 @@ import java.io.InputStreamReader
 import java.text.NumberFormat
 import java.util.Locale
 
-// CSV 파일을 읽어오는 데이터 클래스와 함수
 data class CsvProduct(
     val imagePath: String,
     val brand: String,
@@ -68,22 +72,32 @@ fun loadProductsFromCsv(context: Context): List<CsvProduct> {
     return products
 }
 
-// 가격을 쉼표가 포함된 형식으로 포맷팅하는 함수
 @Composable
 fun formatPrice(price: Int): String {
     val formatter = NumberFormat.getNumberInstance(Locale.KOREA)
-    return "₩${formatter.format(price)}"
+    return "₩ ${formatter.format(price)}"
 }
 
-// ProductScreen 컴포저블
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Product(onBackButtonClicked: () -> Unit) {
+fun Product(
+    onBackButtonClicked: () -> Unit,
+    onMenuButtonClicked: () -> Unit,
+    onMyButtonClicked: () -> Unit,
+    onHomeButtonClicked: () -> Unit,
+    onProductClicked: () -> Unit // 상품 클릭 시 ProductDetail로 이동
+) {
     val context = LocalContext.current
     val products = remember { loadProductsFromCsv(context) }
 
+    val categoryList = listOf(
+        "전체", "BEST", "NEW", "셔츠/블라우스", "후드 티셔츠",
+        "니트웨어", "반소매 티셔츠", "긴소매 티셔츠", "기타 상의"
+    )
+    var selectedIcon by remember { mutableStateOf("Menu") }
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color.White,
         topBar = {
             Column {
                 Box(
@@ -105,7 +119,7 @@ fun Product(onBackButtonClicked: () -> Unit) {
                         )
                     }
                     Text(
-                        text = "Product List",
+                        text = "맨투맨/스웨트",
                         fontSize = 20.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -117,6 +131,15 @@ fun Product(onBackButtonClicked: () -> Unit) {
                 HorizontalDivider(color = Color.Gray, thickness = 1.dp)
             }
         },
+        bottomBar = {
+            BottomNavigationBar(
+                selectedIcon = selectedIcon,
+                onIconSelected = { selectedIcon = it },
+                onMenuButtonClicked = onMenuButtonClicked,
+                onMyButtonClicked = onMyButtonClicked,
+                onHomeButtonClicked = onHomeButtonClicked
+            )
+        },
         content = { innerPadding ->
             Column(
                 modifier = Modifier
@@ -124,6 +147,33 @@ fun Product(onBackButtonClicked: () -> Unit) {
                     .fillMaxSize()
                     .padding(8.dp)
             ) {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    items(categoryList.size) { index ->
+                        ElevatedCard(
+                            shape = RoundedCornerShape(8.dp),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = categoryList[index],
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+                }
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -136,7 +186,8 @@ fun Product(onBackButtonClicked: () -> Unit) {
                             imagePath = product.imagePath,
                             brand = product.brand,
                             name = product.name,
-                            price = formatPrice(product.price)
+                            price = formatPrice(product.price),
+                            onClick = onProductClicked // 상품 클릭 시 이동
                         )
                     }
                 }
@@ -145,26 +196,24 @@ fun Product(onBackButtonClicked: () -> Unit) {
     )
 }
 
-// ProductCard 컴포저블
 @Composable
-fun ProductCard(imagePath: String, brand: String, name: String, price: String) {
+fun ProductCard(imagePath: String, brand: String, name: String, price: String, onClick: () -> Unit) {
     ElevatedCard(
         modifier = Modifier
-            .height(240.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+            .height(230.dp)
+            .fillMaxWidth()
+            .clickable { onClick() }, // 클릭 이벤트 추가
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
+            containerColor = Color.White,
+            contentColor = Color.White
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(10.dp)
         ) {
-            // 이미지 파일은 drawable에 있어야 하며, file name과 imagePath가 일치해야 합니다.
             val context = LocalContext.current
             val imageId = context.resources.getIdentifier(imagePath.removeSuffix(".jpg"), "drawable", context.packageName)
             Image(
@@ -172,12 +221,12 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String) {
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .height(140.dp)
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = brand,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 color = MaterialTheme.colorScheme.secondary,
                 style = MaterialTheme.typography.labelSmall,
                 maxLines = 1,
@@ -185,13 +234,12 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String) {
             )
             Text(
                 text = name,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = price,
                 fontSize = 14.sp,

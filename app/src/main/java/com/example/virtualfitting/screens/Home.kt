@@ -24,8 +24,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ShoppingBag
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,6 +38,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,6 +49,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -56,12 +62,19 @@ import kotlin.math.absoluteValue
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(
+fun Home(
     onMenuButtonClicked: () -> Unit,
-    onMyButtonClicked: () -> Unit
+    onMyButtonClicked: () -> Unit,
+    onHomeButtonClicked: () -> Unit
 ) {
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+
+    // 현재 선택된 하단바 아이콘을 관리하는 상태
+    var selectedIcon by remember { mutableStateOf("Home") }
+    val pyeongFontFamily = FontFamily(
+        Font(R.font.pyeongchangpeace,FontWeight.Normal)
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -78,10 +91,12 @@ fun SearchScreen(
                 ) {
                     Text(
                         text = "No.5",
-                        fontSize = 20.sp,
+                        fontSize = 30.sp,
+                        fontFamily = pyeongFontFamily,
+                        fontWeight = FontWeight.Normal,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color.Black,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Row {
@@ -89,14 +104,14 @@ fun SearchScreen(
                             Icon(
                                 imageVector = Icons.Filled.Notifications,
                                 contentDescription = "Notifications",
-                                tint = Color(android.graphics.Color.parseColor("#81DAF5"))
+                                tint = Color.Black
                             )
                         }
                         IconButton(onClick = { /* 쇼핑백 클릭 */ }) {
                             Icon(
-                                imageVector = Icons.Filled.ShoppingBag,
+                                imageVector = Icons.Filled.ShoppingCart,
                                 contentDescription = "Shopping Bag",
-                                tint = Color(android.graphics.Color.parseColor("#81DAF5"))
+                                tint = Color.Black
                             )
                         }
                     }
@@ -119,31 +134,38 @@ fun SearchScreen(
                             BottomBarItem(
                                 icon = Icons.Filled.Menu,
                                 label = "Menu",
-                                onClick = { onMenuButtonClicked() },
-                                colorCode = "#ABB2B9"
-                            )
-                            BottomBarItem(
-                                icon = Icons.Filled.Search,
-                                label = "Search",
-                                onClick = { /* 검색 클릭 */ },
+                                isSelected = selectedIcon == "Menu",
+                                onClick = {
+                                    selectedIcon = "Menu"
+                                    onMenuButtonClicked()
+                                },
                                 colorCode = "#ABB2B9"
                             )
                             BottomBarItem(
                                 icon = Icons.Filled.Home,
                                 label = "Home",
-                                onClick = { /* 홈 클릭 */ },
+                                isSelected = selectedIcon == "Home",
+                                onClick = {
+                                    selectedIcon = "Home"
+                                    onHomeButtonClicked()
+                                },
                                 colorCode = "#ABB2B9"
                             )
                             BottomBarItem(
                                 icon = Icons.Filled.Favorite,
                                 label = "Favorite",
-                                onClick = { /* 즐겨찾기 클릭 */ },
+                                isSelected = selectedIcon == "Favorite",
+                                onClick = { selectedIcon = "Favorite" },
                                 colorCode = "#ABB2B9"
                             )
                             BottomBarItem(
                                 icon = Icons.Filled.Person,
                                 label = "My",
-                                onClick = { onMyButtonClicked() },
+                                isSelected = selectedIcon == "My",
+                                onClick = {
+                                    selectedIcon = "My"
+                                    onMyButtonClicked()
+                                },
                                 colorCode = "#ABB2B9"
                             )
                         }
@@ -151,8 +173,6 @@ fun SearchScreen(
                 )
             }
         },
-
-
 
         content = { innerPadding ->
             Column(
@@ -162,45 +182,33 @@ fun SearchScreen(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Place the ImageSlider directly below the top bar
                 ImageSlider()
 
                 // Position buttons in the middle between ImageSlider and bottom bar
-                Spacer(modifier = Modifier.height(60.dp)) // Adjust spacing as needed
-                /*Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(onClick = { onImageButton1Clicked() }) {
-                        Text(text = "My")
-                    }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Button(onClick = { onBackButtonClicked() }) {
-                        Text(text = "Back")
-                    }
-                }*/
+                Spacer(modifier = Modifier.height(60.dp))
 
                 CustomButton(
-                    onClick = {  context.startActivity(Intent(context, MyScreenActivity::class.java)) },
+                    onClick = { context.startActivity(Intent(context, MyScreenActivity::class.java)) },
                     modifier = Modifier.width(250.dp) // 원하는 버튼 길이로 조정
                 )
             }
         }
     )
-
 }
 
 @Composable
 fun BottomBarItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     label: String,
+    isSelected: Boolean,
     onClick: () -> Unit,
     colorCode: String
 ) {
+    val iconTint = if (isSelected) Color.Black else Color(android.graphics.Color.parseColor(colorCode))
+
     Column(
         modifier = Modifier
             .padding(horizontal = 16.dp)
@@ -211,7 +219,7 @@ fun BottomBarItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = Color(android.graphics.Color.parseColor(colorCode)),
+            tint = iconTint,
             modifier = Modifier.size(30.dp)
         )
         Spacer(modifier = Modifier.height(2.dp))
@@ -219,7 +227,7 @@ fun BottomBarItem(
             text = label,
             fontSize = 10.sp,
             textAlign = TextAlign.Center,
-            color = Color(android.graphics.Color.parseColor(colorCode))
+            color = iconTint
         )
     }
 }

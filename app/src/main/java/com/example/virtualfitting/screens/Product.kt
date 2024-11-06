@@ -85,7 +85,7 @@ fun Product(
     onMenuButtonClicked: () -> Unit,
     onMyButtonClicked: () -> Unit,
     onHomeButtonClicked: () -> Unit,
-    onProductClicked: () -> Unit // 상품 클릭 시 ProductDetail로 이동
+    onProductClicked: (String) -> Unit // 선택한 이미지 ID를 전달하도록 수정
 ) {
     val context = LocalContext.current
     val products = remember { loadProductsFromCsv(context) }
@@ -187,7 +187,7 @@ fun Product(
                             brand = product.brand,
                             name = product.name,
                             price = formatPrice(product.price),
-                            onClick = onProductClicked // 상품 클릭 시 이동
+                            onClick = { onProductClicked(product.imagePath) } // 선택한 이미지 ID 전달
                         )
                     }
                 }

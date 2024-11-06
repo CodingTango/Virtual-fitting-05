@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.media.MediaActionSound
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -179,6 +180,9 @@ class CameraActivity : ComponentActivity() {
 
                 imageCapture.takePicture(ContextCompat.getMainExecutor(this), object : ImageCapture.OnImageCapturedCallback() {
                     override fun onCaptureSuccess(image: ImageProxy) {
+                        val sound = MediaActionSound()
+                        sound.play(MediaActionSound.SHUTTER_CLICK)
+
                         val rotationDegrees = image.imageInfo.rotationDegrees
                         val bitmap = imageProxyToBitmap(image, rotationDegrees)
                         val stream = ByteArrayOutputStream()
@@ -213,6 +217,7 @@ class CameraActivity : ComponentActivity() {
         val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
+
 
     private fun hasRequiredPermissions(): Boolean {
         return CAMERA_PERMISSIONS.all {

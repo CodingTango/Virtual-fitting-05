@@ -52,7 +52,7 @@ fun MyApp() {
         }
         composable(route = "fittingScreen") {
             FittingScreen(
-                onBackButtonClicked = { navController.navigate("productdetail") }
+                onBackButtonClicked = { navController.navigate("product") }
             )
         }
         composable(route = "menu") {

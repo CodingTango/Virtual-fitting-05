@@ -73,7 +73,7 @@ fun ProductDetail(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text(product?.brand ?: "") },
+                title = {  },
                 navigationIcon = {
                     IconButton(onClick = { onBackButtonClicked() }) {
                         Icon(
@@ -128,7 +128,7 @@ fun ProductDetail(
                             }
                             onFittingButtonClicked()
                         }) {
-                            Text("가상 피팅하기")
+                            Text("가상피팅하기")
                         }
                     }
                 }
@@ -155,6 +155,7 @@ fun ProductDetail(
                                 .height(300.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
+                        Text(product?.brand ?: "")
                         Text(it.name, style = MaterialTheme.typography.titleMedium, color = Color.Black)
                         Text("₩${it.price}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     }

@@ -44,15 +44,19 @@ fun MyApp() {
             val imageId = backStackEntry.arguments?.getString("imageId") ?: ""
             ProductDetail(
                 imageId = imageId,
-                onFittingButtonClicked = { navController.navigate("fittingScreen") },
-                onBackButtonClicked = { navController.navigate("product") },
+                onFittingButtonClicked = {
+                    navController.navigate("fittingScreen/$imageId")
+                },
+                onBackButtonClicked = { navController.popBackStack() },
                 onHomeButtonClicked = { navController.navigate("home") },
                 onMenuButtonClicked = { navController.navigate("menu") }
             )
         }
-        composable(route = "fittingScreen") {
+        composable(route = "fittingScreen/{imageId}") { backStackEntry ->
+            val imageId = backStackEntry.arguments?.getString("imageId") ?: ""
             FittingScreen(
-                onBackButtonClicked = { navController.navigate("product") }
+                imageId = imageId,
+                onBackButtonClicked = { navController.popBackStack() }
             )
         }
         composable(route = "menu") {

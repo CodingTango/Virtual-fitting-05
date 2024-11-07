@@ -58,7 +58,7 @@ import java.net.URL
 @Composable
 fun ProductDetail(
     imageId: String,
-    onFittingButtonClicked: () -> Unit,
+    onFittingButtonClicked: (String) -> Unit,  // imageId를 매개변수로 받음
     onBackButtonClicked: () -> Unit,
     onHomeButtonClicked: () -> Unit,
     onMenuButtonClicked: () -> Unit
@@ -73,7 +73,7 @@ fun ProductDetail(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = {  },
+                title = { Text(product?.brand ?: "") },
                 navigationIcon = {
                     IconButton(onClick = { onBackButtonClicked() }) {
                         Icon(
@@ -126,7 +126,7 @@ fun ProductDetail(
                             if (product != null) {
                                 sendTrigger(product.imagePath)
                             }
-                            onFittingButtonClicked()
+                            onFittingButtonClicked(imageId)
                         }) {
                             Text("가상피팅하기")
                         }
@@ -155,7 +155,6 @@ fun ProductDetail(
                                 .height(300.dp)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(product?.brand ?: "")
                         Text(it.name, style = MaterialTheme.typography.titleMedium, color = Color.Black)
                         Text("₩${it.price}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
                     }

@@ -186,13 +186,13 @@ class CameraActivity : ComponentActivity() {
                         val rotationDegrees = image.imageInfo.rotationDegrees
                         val bitmap = imageProxyToBitmap(image, rotationDegrees)
 
-                        // 이미지 크기를 768x1024로 리사이즈
+                        // 이미지 크기를 768x1024로 resize
                         val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 768, 1024, true)
 
                         val stream = ByteArrayOutputStream()
                         resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
                         val imageData = stream.toByteArray()
-                        viewModel.saveImage(imageData) // 리사이즈된 이미지 데이터를 저장
+                        viewModel.saveImage(imageData)
                         showToast(this@CameraActivity, "Image captured and resized!")
                         image.close()
                     }

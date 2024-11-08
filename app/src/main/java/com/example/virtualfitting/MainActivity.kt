@@ -40,7 +40,6 @@ fun MyApp() {
             route = "productdetail/{imageId}",
             arguments = listOf(navArgument("imageId") { defaultValue = "" })
         ) { backStackEntry ->
-            // imageId를 가져와서 ProductDetail에 전달
             val imageId = backStackEntry.arguments?.getString("imageId") ?: ""
             ProductDetail(
                 imageId = imageId,

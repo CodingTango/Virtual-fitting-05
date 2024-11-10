@@ -183,7 +183,13 @@ fun Home(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-
+                /*Text(
+                    text = "진행중인 이벤트",
+                    fontSize = 20.sp,
+                    maxLines = 1,
+                    color = Color.Black
+                )*/
+                Spacer(modifier = Modifier.height(16.dp))
                 // Place the ImageSlider directly below the top bar
                 ImageSlider()
 

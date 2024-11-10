@@ -3,11 +3,9 @@ package com.example.virtualfitting.screens
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,7 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.virtualfitting.R
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,27 +51,26 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductDetail(
     imageId: String,
-    onFittingButtonClicked: (String) -> Unit,  // imageId를 매개변수로 받음
+    onFittingButtonClicked: (String) -> Unit,
     onBackButtonClicked: () -> Unit,
     onHomeButtonClicked: () -> Unit,
     onMenuButtonClicked: () -> Unit
 ) {
     val context = LocalContext.current
     val product = remember { loadProductById(context, imageId) }
-    val recommendedImages = listOf(R.drawable.c25, R.drawable.c13, R.drawable.c21, R.drawable.c22, R.drawable.c16)
-    val longImages = listOf(R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4, R.drawable.image5)
+    val recommendedImages = remember { loadRecommendedImages(context, imageId) }
+    //val longImages = listOf(R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4, R.drawable.image5)
     var isFavorite by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text(product?.brand ?: "") },
+                title = { Text(product?.brand ?: "", fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = { onBackButtonClicked() }) {
                         Icon(
@@ -89,7 +86,7 @@ fun ProductDetail(
                     IconButton(onClick = { onMenuButtonClicked() }) {
                         Icon(imageVector = Icons.Default.Search, contentDescription = "Search")
                     }
-                    IconButton(onClick = { /* Shopping cart action */ }) {
+                    IconButton(onClick = { /* 장바구니 동작 */ }) {
                         Icon(imageVector = Icons.Default.ShoppingCart, contentDescription = "Cart")
                     }
                 },
@@ -112,7 +109,7 @@ fun ProductDetail(
                                 tint = if (isFavorite) Color.Red else Color.Gray
                             )
                         }
-                        TextButton(onClick = { /* Buy action */ }) {
+                        TextButton(onClick = { /* 구매하기 동작 */ }) {
                             Text("구매하기")
                         }
                         Divider(
@@ -141,44 +138,66 @@ fun ProductDetail(
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // 메인 이미지와 제품 정보
                 item {
-                    // 선택된 이미지 표시
                     product?.let {
                         val imageResId = context.resources.getIdentifier(
                             it.imagePath.removeSuffix(".jpg"), "drawable", context.packageName
                         )
-                        Image(
-                            painter = painterResource(id = imageResId),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
+                        if (imageResId != 0) {
+                            Image(
+                                painter = painterResource(id = imageResId),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .padding(top = 16.dp)
+                            )
+                        } else {
+                            println("Main image resource ID not found for ${it.imagePath}")
+                        }
+                        /*
+                        val imageResId = context.resources.getIdentifier(
+                            it.imagePath.removeSuffix(".jpg"), "drawable", context.packageName
                         )
+                        if (imageResId != 0) {
+                            Image(
+                                painter = painterResource(id = imageResId),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .padding(top = 16.dp)
+                            )
+                        } else {
+                            println("Main image resource ID not found for ${it.imagePath}")
+                        }*/
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(it.name, style = MaterialTheme.typography.titleMedium, color = Color.Black)
-                        Text("₩${it.price}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
+                        Text(it.name, fontSize = 18.sp, color = Color.Black)
+                        Text("₩${it.price}", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
 
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // 화면 너비에 맞춘 이미지 표시
+                // 내용 이미지 표시
+                /*item {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         longImages.forEach { imageResId ->
                             Image(
-                                painter = painterResource(imageResId),
+                                painter = painterResource(id = imageResId),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .aspectRatio(1.78f)
+                                    .padding(vertical = 8.dp)
                             )
                         }
                     }
+                }*/
 
+                // 추천 이미지 제목 및 리스트
+                item {
                     Spacer(modifier = Modifier.height(24.dp))
-
-                    // 추천 이미지 제목
                     Text(
                         text = "이 상품은 어때요?",
                         style = MaterialTheme.typography.titleMedium,
@@ -187,24 +206,26 @@ fun ProductDetail(
                             .fillMaxWidth(),
                         color = Color.Black
                     )
-                }
-
-                item {
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // 추천 이미지 표시
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(recommendedImages) { imageResId ->
-                            Image(
-                                painter = painterResource(imageResId),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .width(120.dp)
-                                    .height(180.dp)
-                            )
+                            println("추천 이미지 리소스 ID: $imageResId")
+
+                            if (imageResId != 0) {
+                                Image(
+                                    painter = painterResource(id = imageResId),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .height(180.dp)
+                                )
+                            } else {
+                                println("Recommended image resource ID not found.")
+                            }
                         }
                     }
                 }
@@ -213,58 +234,82 @@ fun ProductDetail(
     )
 }
 
-
-fun loadProductById(context: Context, imageId: String): CsvProduct? {
+// CSV 파일에서 제품 정보를 로드하는 함수
+fun loadProductById(context: Context, imageId: String): ProductData? {
     val inputStream = context.assets.open("products.csv")
     inputStream.bufferedReader().useLines { lines ->
         lines.forEach { line ->
             val parts = line.split(",")
-            if (parts.size == 4 && parts[0].trim() == imageId) {
+            if (parts.size >= 4 && parts[0].trim() == imageId) {
                 val brand = parts[1].trim()
                 val name = parts[2].trim()
                 val price = parts[3].trim().toIntOrNull() ?: 0
-                return CsvProduct(imageId, brand, name, price)
+                println("Product loaded: $brand, $name, $price")
+                return ProductData(imageId, brand, name, price)
             }
         }
     }
+    println("Product with ID $imageId not found")
     return null
 }
 
+// CSV 파일에서 추천 이미지를 로드하는 함수
+fun loadRecommendedImages(context: Context, imageId: String): List<Int> {
+    val inputStream = context.assets.open("products.csv")
+    inputStream.bufferedReader().useLines { lines ->
+        lines.forEach { line ->
+            val parts = line.split(",")
+            if (parts.isNotEmpty() && parts[0].trim() == imageId) {
+                val recommendedImageIds = parts.drop(4).take(3)
+                val resourceIds = recommendedImageIds.mapNotNull { imgId ->
+                    val resId = context.resources.getIdentifier(imgId.removeSuffix(".jpg"), "drawable", context.packageName)
+                    if (resId != 0) {
+                        println("Recommended image loaded: $imgId -> Resource ID: $resId")
+                        resId
+                    } else {
+                        println("Resource ID for $imgId not found")
+                        null
+                    }
+                }
+                return resourceIds
+            }
+        }
+    }
+    println("No recommended images found for ID $imageId")
+    return emptyList()
+}
+
+// 클라우드로 이미지를 전송하는 함수
 suspend fun sendTriggerToCloud(imageId: String) {
-    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
+    withContext(Dispatchers.IO) {
         val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/change-test")
         val connection = url.openConnection() as HttpURLConnection
-
         try {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
-
-            val jsonInputString = """{"imageId": "$imageId"}"""
-            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
-
-            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
-            outputStreamWriter.write(jsonInputString)
-            outputStreamWriter.flush()
-            outputStreamWriter.close()
-
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                println("Image ID sent successfully")
-            } else {
-                println("Failed to send Image ID: $responseCode")
+            OutputStreamWriter(connection.outputStream).use { it.write("""{"imageId": "$imageId"}""") }
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                println("Failed to send Image ID")
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         } finally {
             connection.disconnect()
         }
     }
 }
 
-// 코루틴 스코프에서 비동기 호출
+// 비동기로 호출하는 함수
 fun sendTrigger(imageId: String) {
     CoroutineScope(Dispatchers.IO).launch {
         sendTriggerToCloud(imageId)
     }
 }
+
+// CSV에서 불러온 제품 정보를 저장하는 데이터 클래스
+data class ProductData(
+    val imageId: String,
+    val brand: String,
+    val name: String,
+    val price: Int,
+    val imagePath: String = "$imageId.jpg"
+)

@@ -52,12 +52,12 @@ import java.net.URL
 import java.text.NumberFormat
 import java.util.Locale
 
-
 data class CsvProduct(
     val imagePath: String,
     val brand: String,
     val name: String,
-    val price: Int
+    val price: Int,
+    val recommendedImages: List<String>
 )
 
 fun loadProductsFromCsv(context: Context): List<CsvProduct> {
@@ -68,12 +68,13 @@ fun loadProductsFromCsv(context: Context): List<CsvProduct> {
     reader.useLines { lines ->
         lines.forEach { line ->
             val parts = line.split(",")
-            if (parts.size == 4) {
+            if (parts.size >= 4) {
                 val imagePath = parts[0].trim()
                 val brand = parts[1].trim()
                 val name = parts[2].trim()
                 val price = parts[3].trim().toIntOrNull() ?: 0
-                products.add(CsvProduct(imagePath, brand, name, price))
+                val recommendedImages = parts.drop(4).map { it.trim() } // 추가된 추천 이미지 ID를 리스트로 저장
+                products.add(CsvProduct(imagePath, brand, name, price, recommendedImages))
             }
         }
     }
@@ -93,7 +94,7 @@ fun Product(
     onMenuButtonClicked: () -> Unit,
     onMyButtonClicked: () -> Unit,
     onHomeButtonClicked: () -> Unit,
-    onProductClicked: (String) -> Unit // 선택한 이미지 ID를 전달하도록 수정
+    onProductClicked: (String) -> Unit
 ) {
     val context = LocalContext.current
     val products = remember { loadProductsFromCsv(context) }
@@ -196,8 +197,8 @@ fun Product(
                             name = product.name,
                             price = formatPrice(product.price),
                             onClick = {
-                                sendImageId(product.imagePath) // Cloud Function에 imageId 전송
-                                onProductClicked(product.imagePath) // ProductDetail로 이동하며 ID전달
+                                sendImageId(product.imagePath)
+                                onProductClicked(product.imagePath)
                             }
                         )
                     }
@@ -213,7 +214,7 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String, o
         modifier = Modifier
             .height(230.dp)
             .fillMaxWidth()
-            .clickable { onClick() }, // 클릭 이벤트 추가
+            .clickable { onClick() },
         colors = CardDefaults.elevatedCardColors(
             containerColor = Color.White,
             contentColor = Color.White
@@ -261,10 +262,8 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String, o
     }
 }
 
-
-// suspend 함수로 네트워크 작업을 비동기로 처리
 suspend fun sendImageIdToCloudFunction(imageId: String) {
-    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
+    withContext(Dispatchers.IO) {
         val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/copy-selected-cloth")
         val connection = url.openConnection() as HttpURLConnection
 
@@ -274,7 +273,7 @@ suspend fun sendImageIdToCloudFunction(imageId: String) {
             connection.doOutput = true
 
             val jsonInputString = """{"imageId": "$imageId"}"""
-            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
+            println("Sending JSON data: $jsonInputString")
 
             val outputStreamWriter = OutputStreamWriter(connection.outputStream)
             outputStreamWriter.write(jsonInputString)
@@ -295,10 +294,8 @@ suspend fun sendImageIdToCloudFunction(imageId: String) {
     }
 }
 
-// 코루틴 스코프에서 비동기 호출
 fun sendImageId(imageId: String) {
     CoroutineScope(Dispatchers.IO).launch {
         sendImageIdToCloudFunction(imageId)
     }
 }
-

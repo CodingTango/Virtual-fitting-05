@@ -70,7 +70,7 @@ fun ProductDetail(
         containerColor = Color.White,
         topBar = {
             TopAppBar(
-                title = { Text(product?.brand ?: "", fontSize = 18.sp) },
+                title = { },
                 navigationIcon = {
                     IconButton(onClick = { onBackButtonClicked() }) {
                         Icon(
@@ -120,13 +120,14 @@ fun ProductDetail(
                                 .padding(horizontal = 8.dp)
                         )
                         TextButton(onClick = {
-                            if (product != null) {
-                                sendTrigger(product.imagePath)
+                            product?.let {  // product가 null이 아닐 때만 실행
+                                sendTrigger(it.imagePath)
+                                onFittingButtonClicked(it.imagePath)
                             }
-                            onFittingButtonClicked(imageId)
                         }) {
                             Text("가상피팅하기")
                         }
+
                     }
                 }
             )
@@ -156,23 +157,8 @@ fun ProductDetail(
                         } else {
                             println("Main image resource ID not found for ${it.imagePath}")
                         }
-                        /*
-                        val imageResId = context.resources.getIdentifier(
-                            it.imagePath.removeSuffix(".jpg"), "drawable", context.packageName
-                        )
-                        if (imageResId != 0) {
-                            Image(
-                                painter = painterResource(id = imageResId),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(300.dp)
-                                    .padding(top = 16.dp)
-                            )
-                        } else {
-                            println("Main image resource ID not found for ${it.imagePath}")
-                        }*/
                         Spacer(modifier = Modifier.height(8.dp))
+                        Text(product?.brand ?: "", fontSize = 18.sp)
                         Text(it.name, fontSize = 18.sp, color = Color.Black)
                         Text("₩${it.price}", fontSize = 16.sp, color = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.height(16.dp))
@@ -244,7 +230,7 @@ fun loadProductById(context: Context, imageId: String): ProductData? {
                 val brand = parts[1].trim()
                 val name = parts[2].trim()
                 val price = parts[3].trim().toIntOrNull() ?: 0
-                println("Product loaded: $brand, $name, $price")
+                //println("Product loaded: $brand, $name, $price")
                 return ProductData(imageId, brand, name, price)
             }
         }
@@ -281,17 +267,31 @@ fun loadRecommendedImages(context: Context, imageId: String): List<Int> {
 
 // 클라우드로 이미지를 전송하는 함수
 suspend fun sendTriggerToCloud(imageId: String) {
-    withContext(Dispatchers.IO) {
+    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
         val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/change-test")
         val connection = url.openConnection() as HttpURLConnection
+
         try {
             connection.requestMethod = "POST"
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
-            OutputStreamWriter(connection.outputStream).use { it.write("""{"imageId": "$imageId"}""") }
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                println("Failed to send Image ID")
+
+            val jsonInputString = """{"imageId": "$imageId"}"""
+            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
+
+            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
+            outputStreamWriter.write(jsonInputString)
+            outputStreamWriter.flush()
+            outputStreamWriter.close()
+
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                println("Image ID sent successfully")
+            } else {
+                println("Failed to send Image ID: $responseCode")
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             connection.disconnect()
         }
@@ -306,10 +306,10 @@ fun sendTrigger(imageId: String) {
 }
 
 // CSV에서 불러온 제품 정보를 저장하는 데이터 클래스
+// CSV에서 불러온 제품 정보를 저장하는 데이터 클래스
 data class ProductData(
-    val imageId: String,
+    val imagePath: String,
     val brand: String,
     val name: String,
     val price: Int,
-    val imagePath: String = "$imageId.jpg"
 )

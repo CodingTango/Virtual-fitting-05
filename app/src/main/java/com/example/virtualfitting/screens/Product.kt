@@ -60,6 +60,8 @@ data class CsvProduct(
     val recommendedImages: List<String>
 )
 
+
+
 fun loadProductsFromCsv(context: Context): List<CsvProduct> {
     val products = mutableListOf<CsvProduct>()
     val inputStream = context.assets.open("products.csv")

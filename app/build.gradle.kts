@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp") version "1.9.20-1.0.14"
-    // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
     id("kotlin-parcelize")
     id("kotlin-android")
@@ -41,6 +40,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
     buildFeatures {
         compose = true
     }
@@ -49,7 +49,7 @@ android {
     }
     packaging {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/INDEX.LIST" // 충돌 파일을 제외
         }
     }
 
@@ -61,6 +61,7 @@ android {
 dependencies {
 
     implementation(libs.play.services.analytics.impl)
+    implementation(libs.core.ktx)
     val cameraxVersion = "1.3.0-rc01"
     val navVersion = "2.7.4"
 
@@ -141,5 +142,7 @@ dependencies {
 
 // Firebase Analytics 추가
     implementation("com.google.firebase:firebase-analytics")
+
+    implementation("com.google.cloud:google-cloud-storage:2.9.3")
 
 }

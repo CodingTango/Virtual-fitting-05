@@ -200,6 +200,14 @@ fun Home(
                     onClick = { context.startActivity(Intent(context, MyScreenActivity::class.java)) },
                     modifier = Modifier.width(250.dp) // 원하는 버튼 길이로 조정
                 )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // 선호도 조사하기 버튼
+                SurveyButton(
+                    onClick = { context.startActivity(Intent(context, SurveyActivity::class.java)) },
+                    modifier = Modifier.width(250.dp)
+                )
             }
         }
     )
@@ -308,6 +316,24 @@ fun CustomButton(
     ) {
         Text(
             text = "사용자 이미지 등록하기",
+            color = Color.White // 흰색 텍스트
+        )
+    }
+}
+
+@Composable
+fun SurveyButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier.width(200.dp) // 버튼 길이를 조정할 수 있습니다.
+) {
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        shape = RoundedCornerShape(16.dp), // 둥근 모서리
+        modifier = modifier
+    ) {
+        Text(
+            text = "선호도 조사하기",
             color = Color.White // 흰색 텍스트
         )
     }

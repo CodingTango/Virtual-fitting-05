@@ -153,7 +153,7 @@ fun FittingScreen(imageId: String, onBackButtonClicked: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(16.dp)) // 이미지와 버튼 사이 간격
                 Button(
-                    onClick = { checkAndSaveImage(imageUrl!!) },
+                    onClick = {  },
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text("Save in Gallery")

@@ -198,7 +198,7 @@ fun SplitScrollScreen(onItemClick: (String) -> Unit) {
                         .fillMaxWidth()
                         .padding(8.dp)
                         .clickable {
-                            if (item == "맨투맨/스웨트") {
+                            if (item == "맨투맨/스웨트" || item == "셔츠/블라우스" || item == "후드 티셔츠") {
                                 onItemClick(item)
                             }
                         },

@@ -76,27 +76,55 @@ fun SurveyScreen(
         when (currentQuestion) {
             1 -> QuestionScreen(
                 question = "선호하는 색상을 선택하세요:",
-                options = listOf("검은색", "흰색", "파란색", "갈색"),
-                initialSelections = answers[currentQuestion] ?: emptyList(),
-                onSelect = { selected -> viewModel.updateAnswers(1, selected) }
-            )
-            2 -> QuestionScreen(
-                question = "선호하는 옷 종류를 선택하세요:",
-                options = listOf("가디건", "셔츠", "티셔츠", "니트"),
-                initialSelections = answers[currentQuestion] ?: emptyList(),
-                onSelect = { selected -> viewModel.updateAnswers(2, selected) }
-            )
-            3 -> QuestionScreen(
-                question = "선호하시는 가격대를 선택하세요:",
-                options = listOf("비쌈", "적당함", "저렴함"),
+                options = listOf("검정색", "남색", "갈색", "회색", "빨강색", "보라색", "아이보리"),
                 initialSelections = answers[currentQuestion] ?: emptyList(),
                 onSelect = { selected ->
                     // 선택 항목 변환 후 저장
                     val mapped = selected.map {
                         when (it) {
-                            "비쌈" -> "high"
-                            "적당함" -> "middle"
-                            "저렴함" -> "low"
+                            "검정색" -> "Black"
+                            "남색" -> "Navy"
+                            "갈색" -> "Brown"
+                            "회색" -> "Gray"
+                            "빨강색" -> "Red"
+                            "보라색" -> "Purple"
+                            "아이보리" -> "Ivory"
+                            else -> it
+                        }
+                    }
+                    viewModel.updateAnswers(1, mapped)
+                }
+            )
+            2 -> QuestionScreen(
+                question = "선호하는 옷 종류를 선택하세요:",
+                options = listOf("티셔츠", "카라티", "원피스", "후드티", "셔츠"),
+                initialSelections = answers[currentQuestion] ?: emptyList(),
+                onSelect = { selected ->
+                    // 선택 항목 변환 후 저장
+                    val mapped = selected.map {
+                        when (it) {
+                            "티셔츠" -> "Sweatshirt"
+                            "카라티" -> "Turtleneck"
+                            "원피스" -> "Onepiece"
+                            "후드티" -> "Hoodie"
+                            "셔츠" -> "Shirt"
+                            else -> it
+                        }
+                    }
+                    viewModel.updateAnswers(2, mapped)
+                }
+            )
+            3 -> QuestionScreen(
+                question = "선호하시는 가격대를 선택하세요:",
+                options = listOf("높은 가격", "적당한 가격", "저렴한 가격"),
+                initialSelections = answers[currentQuestion] ?: emptyList(),
+                onSelect = { selected ->
+                    // 선택 항목 변환 후 저장
+                    val mapped = selected.map {
+                        when (it) {
+                            "높은 가격" -> "High"
+                            "적당한 가격" -> "Mid"
+                            "저렴한 가격" -> "Low"
                             else -> it
                         }
                     }
@@ -111,8 +139,8 @@ fun SurveyScreen(
                     // 선택 항목 변환 후 저장
                     val mapped = selected.map {
                         when (it) {
-                            "있음" -> "yes"
-                            "없음" -> "no"
+                            "있음" -> "Yes"
+                            "없음" -> "No"
                             else -> it
                         }
                     }
@@ -158,8 +186,23 @@ fun SurveyScreen(
 fun submitAnswers(context: Context, answers: Map<Int, List<String>>) {
     CoroutineScope(Dispatchers.IO).launch {
         try {
+            // Key 변환 맵
+            val keyMapping = mapOf(
+                1 to "Color",
+                2 to "Category",
+                3 to "Price",
+                4 to "Print"
+            )
+
+            // Key를 변환한 새로운 맵 생성
+            val transformedAnswers = answers.mapKeys { entry ->
+                keyMapping[entry.key] ?: entry.key.toString()
+            }
+
+            // JSON 데이터로 변환
+            val jsonData = Gson().toJson(transformedAnswers)
+
             val cloudRunUrl = "https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/upload-survey-result"
-            val jsonData = Gson().toJson(answers)
             val requestBody = jsonData.toRequestBody("application/json".toMediaType())
 
             val client = OkHttpClient.Builder()

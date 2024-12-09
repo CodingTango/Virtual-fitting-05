@@ -22,38 +22,39 @@ import androidx.compose.ui.unit.dp
 fun QuestionScreen(
     question: String,
     options: List<String>,
-    initialSelections: List<String>, // 초기 선택 항목 추가
-    onSelect: (List<String>) -> Unit
+    initialSelections: List<String>, // ViewModel에서 전달된 초기 선택 상태
+    onSelect: (List<String>) -> Unit // 선택 항목 변경 콜백
 ) {
-    var selectedOptions by remember { mutableStateOf(initialSelections) } // 초기 선택 항목 설정
+    // 초기 선택 상태와 동기화
+    var selectedOptions by remember { mutableStateOf(initialSelections) }
 
     Column {
         Text(text = question, style = MaterialTheme.typography.headlineSmall)
         Spacer(modifier = Modifier.height(16.dp))
+
         options.forEach { option ->
             Row(
                 Modifier
                     .fillMaxWidth()
                     .toggleable(
                         value = selectedOptions.contains(option),
-                        onValueChange = {
-                            selectedOptions = if (it) {
+                        onValueChange = { isChecked ->
+                            selectedOptions = if (isChecked) {
                                 selectedOptions + option
                             } else {
                                 selectedOptions - option
                             }
-                            onSelect(selectedOptions) // 선택 상태를 ViewModel에 전달
+                            onSelect(selectedOptions) // 선택 항목을 ViewModel에 전달
                         }
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Checkbox(
                     checked = selectedOptions.contains(option),
-                    onCheckedChange = null
+                    onCheckedChange = null // toggleable로 처리
                 )
                 Text(option)
             }
         }
     }
 }
-

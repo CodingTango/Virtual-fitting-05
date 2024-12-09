@@ -3,35 +3,18 @@ package com.example.virtualfitting.screens
 import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -46,11 +29,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 data class CsvProduct(
     val imagePath: String,
@@ -60,11 +44,9 @@ data class CsvProduct(
     val recommendedImages: List<String>
 )
 
-
-
-fun loadProductsFromCsv(context: Context): List<CsvProduct> {
+fun loadProductsFromCsv(context: Context, fileName: String): List<CsvProduct> {
     val products = mutableListOf<CsvProduct>()
-    val inputStream = context.assets.open("products.csv")
+    val inputStream = context.assets.open(fileName)
     val reader = BufferedReader(InputStreamReader(inputStream))
 
     reader.useLines { lines ->
@@ -75,7 +57,7 @@ fun loadProductsFromCsv(context: Context): List<CsvProduct> {
                 val brand = parts[1].trim()
                 val name = parts[2].trim()
                 val price = parts[3].trim().toIntOrNull() ?: 0
-                val recommendedImages = parts.drop(4).map { it.trim() } // 추가된 추천 이미지 ID를 리스트로 저장
+                val recommendedImages = parts.drop(4).map { it.trim() }
                 products.add(CsvProduct(imagePath, brand, name, price, recommendedImages))
             }
         }
@@ -96,15 +78,14 @@ fun Product(
     onMenuButtonClicked: () -> Unit,
     onMyButtonClicked: () -> Unit,
     onHomeButtonClicked: () -> Unit,
-    onProductClicked: (String) -> Unit
+    onProductClicked: (String) -> Unit,
+    csvFileName: String,
+    categoryList: List<String>,
+    title: String
 ) {
     val context = LocalContext.current
-    val products = remember { loadProductsFromCsv(context) }
+    val products = remember { loadProductsFromCsv(context, csvFileName) }
 
-    val categoryList = listOf(
-        "전체", "BEST", "NEW", "셔츠/블라우스", "후드 티셔츠",
-        "니트웨어", "반소매 티셔츠", "긴소매 티셔츠", "기타 상의"
-    )
     var selectedIcon by remember { mutableStateOf("Menu") }
 
     Scaffold(
@@ -130,7 +111,7 @@ fun Product(
                         )
                     }
                     Text(
-                        text = "맨투맨/스웨트",
+                        text = title,
                         fontSize = 20.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -139,7 +120,7 @@ fun Product(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
-                HorizontalDivider(color = Color.Gray, thickness = 1.dp)
+                Divider(color = Color.Gray, thickness = 1.dp)
             }
         },
         bottomBar = {
@@ -199,7 +180,6 @@ fun Product(
                             name = product.name,
                             price = formatPrice(product.price),
                             onClick = {
-                                sendImageId(product.imagePath)
                                 onProductClicked(product.imagePath)
                             }
                         )
@@ -261,43 +241,5 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String, o
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-    }
-}
-
-suspend fun sendImageIdToCloudFunction(imageId: String) {
-    withContext(Dispatchers.IO) {
-        val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/copy-selected-cloth")
-        val connection = url.openConnection() as HttpURLConnection
-
-        try {
-            connection.requestMethod = "POST"
-            connection.setRequestProperty("Content-Type", "application/json")
-            connection.doOutput = true
-
-            val jsonInputString = """{"imageId": "$imageId"}"""
-            println("Sending JSON data: $jsonInputString")
-
-            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
-            outputStreamWriter.write(jsonInputString)
-            outputStreamWriter.flush()
-            outputStreamWriter.close()
-
-            val responseCode = connection.responseCode
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                println("Image ID sent successfully")
-            } else {
-                println("Failed to send Image ID: $responseCode")
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            connection.disconnect()
-        }
-    }
-}
-
-fun sendImageId(imageId: String) {
-    CoroutineScope(Dispatchers.IO).launch {
-        sendImageIdToCloudFunction(imageId)
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
@@ -64,7 +66,12 @@ fun ProductDetail(
     val context = LocalContext.current
     val product = remember { loadProductById(context, imageId, csvFileName) }
     val recommendedImages = remember { loadRecommendedImages(context, imageId, csvFileName) }
+    var newRecommendations by remember { mutableStateOf(listOf<Int>()) } // 초기 상태 정의
     var isFavorite by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        newRecommendations = fetchRecommendationsFromServer(context)
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -190,6 +197,36 @@ fun ProductDetail(
                         }
                     }
                 }
+
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = "사용자님의 선호도를 반영한 추천상품이에요.",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier
+                            .padding(start = 16.dp)
+                            .fillMaxWidth(),
+                        color = Color.Black
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(newRecommendations) { imageResId ->
+                            if (imageResId != 0) {
+                                Image(
+                                    painter = painterResource(id = imageResId),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(120.dp)
+                                        .height(180.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     )
@@ -265,6 +302,42 @@ fun sendTrigger(imageId: String) {
         sendTriggerToCloud(imageId)
     }
 }
+
+suspend fun fetchRecommendationsFromServer(context: Context): List<Int> {
+    return withContext(Dispatchers.IO) {
+        val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/download-user-recommend-csv") // Cloud Function URL 입력
+        val connection = url.openConnection() as HttpURLConnection
+
+        try {
+            connection.requestMethod = "GET"
+            connection.connectTimeout = 5000
+            connection.readTimeout = 5000
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val jsonResponse = connection.inputStream.bufferedReader().use { it.readText() }
+                val jsonObject = JSONObject(jsonResponse)
+                val recommendations = jsonObject.getJSONArray("recommendations")
+
+                (0 until recommendations.length()).mapNotNull { index ->
+                    val imgId = recommendations.getString(index)
+                    context.resources.getIdentifier(
+                        imgId.removeSuffix(".jpg"),
+                        "drawable",
+                        context.packageName
+                    )
+                }
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        } finally {
+            connection.disconnect()
+        }
+    }
+}
+
 // CSV에서 불러온 제품 정보를 저장하는 데이터 클래스
 data class ProductData(
     val imagePath: String,

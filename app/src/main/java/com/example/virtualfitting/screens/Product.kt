@@ -1,6 +1,7 @@
 package com.example.virtualfitting.screens
 
 import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,9 +45,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 import java.text.NumberFormat
@@ -196,8 +197,15 @@ fun Product(
                             name = product.name,
                             price = formatPrice(product.price),
                             onClick = {
-                                sendImageId(product.imagePath)
-                                onProductClicked(product.imagePath)
+                                sendImageId(product.imagePath) { success ->
+                                    if (success) {
+                                        // 서버 작업 성공 시 화면 전환
+                                        onProductClicked(product.imagePath)
+                                    } else {
+                                        // 실패 시 사용자에게 알림
+                                        Toast.makeText(context, "업데이트 실패. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
                             }
                         )
                     }
@@ -263,8 +271,8 @@ fun ProductCard(imagePath: String, brand: String, name: String, price: String, o
 
 
 
-suspend fun sendImageIdToCloudFunction(imageId: String) {
-    withContext(Dispatchers.IO) {
+suspend fun sendImageIdToCloudFunction(imageId: String): Boolean {
+    return withContext(Dispatchers.IO) {
         val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/user-update")
         val connection = url.openConnection() as HttpURLConnection
 
@@ -273,30 +281,42 @@ suspend fun sendImageIdToCloudFunction(imageId: String) {
             connection.setRequestProperty("Content-Type", "application/json")
             connection.doOutput = true
 
+            // JSON 데이터 작성
             val jsonInputString = """{"imageId": "$imageId"}"""
             println("Sending JSON data: $jsonInputString")
 
-            val outputStreamWriter = OutputStreamWriter(connection.outputStream)
-            outputStreamWriter.write(jsonInputString)
-            outputStreamWriter.flush()
-            outputStreamWriter.close()
+            // 서버로 데이터 전송
+            connection.outputStream.use { output ->
+                output.write(jsonInputString.toByteArray())
+            }
 
+            // 서버 응답 확인
             val responseCode = connection.responseCode
             if (responseCode == HttpURLConnection.HTTP_OK) {
-                println("Image ID sent successfully")
+                val response = connection.inputStream.bufferedReader().use { it.readText() }
+                println("Response from server: $response")
+                // JSON 응답 파싱 및 성공 여부 반환
+                val jsonResponse = JSONObject(response)
+                jsonResponse.getString("status") == "success"
             } else {
                 println("Failed to send Image ID: $responseCode")
+                false
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            false
         } finally {
             connection.disconnect()
         }
     }
 }
 
-fun sendImageId(imageId: String) {
+
+fun sendImageId(imageId: String, onCompletion: (Boolean) -> Unit) {
     CoroutineScope(Dispatchers.IO).launch {
-        sendImageIdToCloudFunction(imageId)
+        val success = sendImageIdToCloudFunction(imageId)
+        withContext(Dispatchers.Main) {
+            onCompletion(success)
+        }
     }
 }

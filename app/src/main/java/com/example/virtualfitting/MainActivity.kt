@@ -10,12 +10,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.virtualfitting.screens.FittingScreen
 import com.example.virtualfitting.screens.Home
-import com.example.virtualfitting.screens.Hoodie
 import com.example.virtualfitting.screens.Menu
 import com.example.virtualfitting.screens.My
 import com.example.virtualfitting.screens.Product
 import com.example.virtualfitting.screens.ProductDetail
-import com.example.virtualfitting.screens.Shirt
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,11 +40,11 @@ fun MyApp() {
             route = "productdetail/{imageId}/{csvFileName}",
             arguments = listOf(
                 navArgument("imageId") { defaultValue = "" },
-                navArgument("csvFileName") { defaultValue = "products.csv" }
+                navArgument("csvFileName") { defaultValue = "sweatshirt.csv" }
             )
         ) { backStackEntry ->
             val imageId = backStackEntry.arguments?.getString("imageId") ?: ""
-            val csvFileName = backStackEntry.arguments?.getString("csvFileName") ?: "products.csv"
+            val csvFileName = backStackEntry.arguments?.getString("csvFileName") ?: "sweatshirt.csv"
             ProductDetail(
                 imageId = imageId,
                 csvFileName = csvFileName,
@@ -89,7 +87,7 @@ fun MyApp() {
             )
         }
         composable(route = "product/{csvFileName}") { backStackEntry ->
-            val csvFileName = backStackEntry.arguments?.getString("csvFileName") ?: "products.csv"
+            val csvFileName = backStackEntry.arguments?.getString("csvFileName") ?: "sweatshirt.csv"
             Product(
                 onBackButtonClicked = { navController.navigate("menu") },
                 onMenuButtonClicked = { navController.navigate("menu") },

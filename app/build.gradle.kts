@@ -145,4 +145,9 @@ dependencies {
 
     implementation("com.google.cloud:google-cloud-storage:2.9.3")
 
+    // retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+
 }

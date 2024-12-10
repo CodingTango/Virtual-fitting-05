@@ -2,7 +2,15 @@ package com.example.virtualfitting.screens
 
 import android.content.Context
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -12,7 +20,17 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
+import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -210,7 +228,7 @@ fun loadRecommendedImages(context: Context, imageId: String, csvFileName: String
 }
 // 클라우드로 이미지를 전송하는 함수
 suspend fun sendTriggerToCloud(imageId: String) {
-    withContext(Dispatchers.IO) {
+    withContext(Dispatchers.IO) {  // 네트워크 작업을 IO 디스패처로 안전하게 이동
         val url = URL("https://asia-east2-virtual-fitting-05-438415.cloudfunctions.net/change-test")
         val connection = url.openConnection() as HttpURLConnection
 
@@ -220,19 +238,27 @@ suspend fun sendTriggerToCloud(imageId: String) {
             connection.doOutput = true
 
             val jsonInputString = """{"imageId": "$imageId"}"""
+            println("Sending JSON data: $jsonInputString")  // JSON 데이터 로그 출력
+
             val outputStreamWriter = OutputStreamWriter(connection.outputStream)
             outputStreamWriter.write(jsonInputString)
             outputStreamWriter.flush()
             outputStreamWriter.close()
 
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                println("Failed to send Image ID: ${connection.responseCode}")
+            val responseCode = connection.responseCode
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                println("Image ID sent successfully")
+            } else {
+                println("Failed to send Image ID: $responseCode")
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         } finally {
             connection.disconnect()
         }
     }
 }
+
 // 비동기로 호출하는 함수
 fun sendTrigger(imageId: String) {
     CoroutineScope(Dispatchers.IO).launch {
